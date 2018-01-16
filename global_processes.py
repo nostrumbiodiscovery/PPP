@@ -206,7 +206,8 @@ def PDBwriter(output_file_name, structure, make_unique, residues2remove, no_prot
         ter = False
         resnums = [residue.getResnum() for residue in chain]
         if chain.getChid() in gaps.keys():
-            gaps_residues = gaps[chain.getChid()]
+            gaps_residues = [y for x in gaps[chain.getChid()] for y in x]
+            # gaps_residues = gaps[chain.getChid()]
         else:
             gaps_residues = []
         if chain.getChid() == make_unique and no_proteic_ligand is not None:
@@ -315,11 +316,11 @@ def RenumberStructure(initial_structure, gaps={}, no_gaps={}, debug=False):
         residue_number = 1
         chain_id = chain.getChid()
         if chain_id in gaps.keys():
-            gap_residues = gaps[chain_id]
+            gap_residues = [y for x in gaps[chain_id] for y in x]
         else:
             gap_residues = []
         if chain_id in no_gaps.keys():
-            no_gap_residues = no_gaps[chain_id]
+            no_gap_residues = [y for x in no_gaps[chain_id] for y in x]
         else:
             no_gap_residues = []
         for residue in chain.iterResidues():

@@ -36,6 +36,7 @@ initial_residue, final_residue = FindInitialAndFinalResidues(initial_structure)
 if args.gaps_ter:
     print "* Checking for gaps."
     gaps, not_gaps = CheckforGaps(initial_structure)
+    print gaps
     if gaps is None and not_gaps is None:
         print "WARNING: Problems when checking for gaps, so don't trust the existence of gaps."
         gaps, not_gaps = {}, {}
@@ -54,11 +55,11 @@ print "* Checking and fixing the Atoms Names:"
 structure2use = FixAtomNames(structure2use, gaps, not_gaps)
 print "* Checking the structure for missing atoms:"
 residues2fix, residues2remove = CheckStructure(structure2use, gaps, not_gaps, args.remove_terminal_missing)
+print '\n', residues2fix, residues2remove
 if residues2fix:
     print '* Placing the missing atoms:'
-#    print residues2fix
     structure2use = FixStructure(structure2use, residues2fix)
-
+    print structure2use.select('resnum 101 and chain H').getNames()
 print args.mutation
 
 if not args.mutation:
