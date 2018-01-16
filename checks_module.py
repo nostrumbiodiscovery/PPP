@@ -120,7 +120,6 @@ def CheckStructure(initial_structure, gaps={}, no_gaps={}, remove_missing_ter=Fa
                         print "ZMATRIX: {}\n zmat atoms:{}".format(zmatrix.Name, sorted(zmatrix.AtomNames))
                         print " resi atoms:", sorted(residue_atomnames)
                 if missing_atoms:
-                    print resname, missing_atoms, resnum, zmatrix.AtomNames, residue_atomnames
                     if "CA" in missing_atoms or "N" in missing_atoms or "O" in missing_atoms or "C" in missing_atoms:
                         print "  The residue {} {} is missing one or more heavy atoms in the backbone. " \
                               "It cannot be fixed.".format(resname, resnum, residue.getChid())

@@ -78,6 +78,8 @@ def FixAtomNames(initial_structure, gaps={}, no_gaps={}, debug=False):
             gaps_b = [x[1] for x in gaps[chain.getChid()]]
         else:
             gaps_residues = []
+            gaps_b = []
+            gaps_e = []
         if chain.getChid() in no_gaps.keys():
             no_gaps_residues = [y for x in no_gaps[chain.getChid()] for y in x]
         else:

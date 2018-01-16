@@ -33,15 +33,11 @@ except IOError:
 initial_residue, final_residue = FindInitialAndFinalResidues(initial_structure)
 # ff_parameters = ReadForceFieldParameters(args.force_field)
 
-if args.gaps_ter:
-    print "* Checking for gaps."
-    gaps, not_gaps = CheckforGaps(initial_structure)
-    print gaps
-    if gaps is None and not_gaps is None:
-        print "WARNING: Problems when checking for gaps, so don't trust the existence of gaps."
-        gaps, not_gaps = {}, {}
-else:
-    gaps = not_gaps = {}
+print "* Checking for gaps."
+gaps, not_gaps = CheckforGaps(initial_structure)
+if gaps is None and not_gaps is None:
+    print "WARNING: Problems when checking for gaps, so don't trust the existence of gaps."
+    gaps, not_gaps = {}, {}
 print "* Checking for insertion codes."
 insertion_codes = [icode for icode in initial_structure.getIcodes() if icode]
 if insertion_codes:
@@ -55,11 +51,9 @@ print "* Checking and fixing the Atoms Names:"
 structure2use = FixAtomNames(structure2use, gaps, not_gaps)
 print "* Checking the structure for missing atoms:"
 residues2fix, residues2remove = CheckStructure(structure2use, gaps, not_gaps, args.remove_terminal_missing)
-print '\n', residues2fix, residues2remove
 if residues2fix:
     print '* Placing the missing atoms:'
     structure2use = FixStructure(structure2use, residues2fix)
-    print structure2use.select('resnum 101 and chain H').getNames()
 print args.mutation
 
 if not args.mutation:
@@ -70,12 +64,12 @@ if not args.mutation:
             not_proteic_ligand = structure2use.select("chain {}".format(args.make_unique)).hetero
         else:
             not_proteic_ligand = None
-        PDBwriter(args.output_pdb[0], WritingAtomNames(structure2use), args.make_unique,
-                  residues2remove, not_proteic_ligand, gaps, not_gaps)
+        PDBwriter(args.output_pdb[0], WritingAtomNames(structure2use), args.make_unique, residues2remove,
+                  args.no_gaps_ter, not_proteic_ligand, gaps, not_gaps)
     else:
         not_proteic_ligand = None
-        PDBwriter(args.output_pdb[0], WritingAtomNames(structure2use), args.make_unique,
-                  residues2remove, not_proteic_ligand, gaps, not_gaps)
+        PDBwriter(args.output_pdb[0], WritingAtomNames(structure2use), args.make_unique, residues2remove,
+                  args.no_gaps_ter, not_proteic_ligand, gaps, not_gaps)
     sys.exit()
 else:
     clashes = []
@@ -87,7 +81,7 @@ else:
         if not correct_mutation:
             exit_message = "The mutation was incorrect, check your parameters.\n" \
                            "The checked structure will be written to {}".format(output_file)
-            PDBwriter(output_file, WritingAtomNames(structure2use), args.make_unique, gaps, not_gaps)
+            PDBwriter(output_file, WritingAtomNames(structure2use), args.make_unique, gaps, args.no_gaps_ter, not_gaps)
             continue
         else:
             print "Output_file name: {0}".format(output_file)
@@ -110,9 +104,10 @@ else:
                                                              mutation, zmatrix,
                                                              initial_residue, final_residue)
                 mutated_structure.setTitle("mutated structure")
-                PDBwriter(output_file, WritingAtomNames(mutated_structure), args.make_unique, gaps, not_gaps)
+                PDBwriter(output_file, WritingAtomNames(mutated_structure), args.make_unique, gaps, args.no_gaps_ter,
+                          not_gaps)
             else:
                 print "Multiple mutations at the same time are still under development."
                 structure2use = mutated_structure
     if args.mutant_multiple and mutated_structure is not None:
-        PDBwriter(args.output_pdb, WritingAtomNames(mutated_structure), gaps, not_gaps)
+        PDBwriter(args.output_pdb, WritingAtomNames(mutated_structure), gaps, not_gaps, args.no_gaps_ter)
