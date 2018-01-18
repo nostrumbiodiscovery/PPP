@@ -21,17 +21,16 @@ addNonstdAminoacid('HIP', 'aromatic', 'basic', 'cyclic', 'large', 'polar', 'surf
 addNonstdAminoacid('CYT', 'neutral', 'acyclic', 'medium', 'polar', 'buried')
 addNonstdAminoacid('LYN', 'neutral', 'acyclic', 'large', 'polar', 'buried')
 
-def main(args):
-    if args is None:
-        sys.exit()
 
+def main(input_pdb, output_pdb="", no_gaps_ter=False, make_unique=False, mutant_multiple=False,
+         mutation="", remove_terminal_missing=False):
     try:
-        initial_structure = parsePDB(args.input_pdb)
+        initial_structure = parsePDB(input_pdb)
     except IOError:
-        print "The file '{}' isn't a valid file\nCheck that it does exist and try again.".format(args.input_pdb)
+        print "The file '{}' isn't a valid file\nCheck that it does exist and try again.".format(input_pdb)
         sys.exit()
     initial_residue, final_residue = FindInitialAndFinalResidues(initial_structure)
-    # ff_parameters = ReadForceFieldParameters(args.force_field)
+    # ff_parameters = ReadForceFieldParameters(force_field)
 
     print "* Checking for gaps."
     gaps, not_gaps = CheckforGaps(initial_structure)
@@ -46,48 +45,48 @@ def main(args):
     else:
         structure2use = initial_structure
     print "* Checking and Fixing the Residues Names:"
-    structure2use = FixStructureResnames(structure2use, args.make_unique)
+    structure2use = FixStructureResnames(structure2use, make_unique)
     print "* Checking and fixing the Atoms Names:"
     structure2use = FixAtomNames(structure2use, gaps, not_gaps)
     print "* Checking the structure for missing atoms:"
-    residues2fix, residues2remove = CheckStructure(structure2use, gaps, not_gaps, args.remove_terminal_missing)
+    residues2fix, residues2remove = CheckStructure(structure2use, gaps, not_gaps, remove_terminal_missing)
     if residues2fix:
         print '* Placing the missing atoms:'
         structure2use = FixStructure(structure2use, residues2fix)
-    print args.mutation
+    print mutation
 
-    if not args.mutation:
-        print 'Writing the structure to {}'.format(args.output_pdb[0])
-        if args.make_unique:
-            ligand_chain = structure2use.select("chain {}".format(args.make_unique))
+    if not mutation:
+        print 'Writing the structure to {}'.format(output_pdb[0])
+        if make_unique:
+            ligand_chain = structure2use.select("chain {}".format(make_unique))
             if ligand_chain:
-                not_proteic_ligand = structure2use.select("chain {}".format(args.make_unique)).hetero
+                not_proteic_ligand = structure2use.select("chain {}".format(make_unique)).hetero
             else:
                 not_proteic_ligand = None
-            PDBwriter(args.output_pdb[0], WritingAtomNames(structure2use), args.make_unique, residues2remove,
-                      args.no_gaps_ter, not_proteic_ligand, gaps, not_gaps)
+            PDBwriter(output_pdb[0], WritingAtomNames(structure2use), make_unique, residues2remove,
+                      no_gaps_ter, not_proteic_ligand, gaps, not_gaps)
         else:
             not_proteic_ligand = None
-            PDBwriter(args.output_pdb[0], WritingAtomNames(structure2use), args.make_unique, residues2remove,
-                      args.no_gaps_ter, not_proteic_ligand, gaps, not_gaps)
+            PDBwriter(output_pdb[0], WritingAtomNames(structure2use), make_unique, residues2remove,
+                      no_gaps_ter, not_proteic_ligand, gaps, not_gaps)
         sys.exit()
     else:
         clashes = []
         mutated_structure = None
-        for mutation, output_file in zip(args.mutation, args.output_pdb):
+        for mutation, output_file in zip(mutation, output_pdb):
             print '* Checking the mutation:'
             print " Mutation: {0[ini_resname]} {0[chain]} {0[resnum]} {0[fin_resname]}".format(mutation)
             correct_mutation = CheckMutation(structure2use, mutation)
             if not correct_mutation:
                 exit_message = "The mutation was incorrect, check your parameters.\n" \
                                "The checked structure will be written to {}".format(output_file)
-                PDBwriter(output_file, WritingAtomNames(structure2use), args.make_unique, gaps, args.no_gaps_ter, not_gaps)
+                PDBwriter(output_file, WritingAtomNames(structure2use), make_unique, gaps, no_gaps_ter, not_gaps)
                 continue
             else:
                 print "Output_file name: {0}".format(output_file)
                 mutated_structure, zmatrix = Mutate(structure2use, mutation)
-                if not args.mutant_multiple:
-                    if args.mutation[0]['fin_resname'] in ["ALA", "GLY"]:
+                if not mutant_multiple:
+                    if mutation[0]['fin_resname'] in ["ALA", "GLY"]:
                         print "The ALA and the GLY don't have any rotamer to try."
                     else:
                         print "Checking Clashes:"
@@ -104,15 +103,19 @@ def main(args):
                                                                  mutation, zmatrix,
                                                                  initial_residue, final_residue)
                     mutated_structure.setTitle("mutated structure")
-                    PDBwriter(output_file, WritingAtomNames(mutated_structure), args.make_unique, gaps, args.no_gaps_ter,
+                    PDBwriter(output_file, WritingAtomNames(mutated_structure), make_unique, gaps, no_gaps_ter,
                               not_gaps)
                 else:
                     print "Multiple mutations at the same time are still under development."
                     structure2use = mutated_structure
-        if args.mutant_multiple and mutated_structure is not None:
-            PDBwriter(args.output_pdb, WritingAtomNames(mutated_structure), gaps, not_gaps, args.no_gaps_ter)
+        if mutant_multiple and mutated_structure is not None:
+            PDBwriter(output_pdb, WritingAtomNames(mutated_structure), gaps, not_gaps, no_gaps_ter)
 
 
 if __name__ == '__main__':
     arguments = ParseArguments()
-    main(arguments)
+    if arguments is None:
+        sys.exit()
+    else:
+        main(arguments.input_pdb, arguments.output_pdb, arguments.no_gaps_ter, arguments.make_unique,
+             arguments.mutant_multiple, arguments.mutation, arguments.remove_terminal_missing)
