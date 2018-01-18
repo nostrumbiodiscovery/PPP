@@ -55,11 +55,16 @@ def CheckStructure(initial_structure, gaps={}, no_gaps={}, remove_missing_ter=Fa
     residues2remove = {}
     for chain in initial_structure.iterChains():
         if chain.getChid() in gaps.keys():
-            gaps_residues = gaps[chain.getChid()]
+            gaps_residues = [y for x in gaps[chain.getChid()] for y in x]
+            gaps_e = [x[0] for x in gaps[chain.getChid()]]
+            gaps_b = [x[1] for x in gaps[chain.getChid()]]
+            # print gaps_b, gaps_e
         else:
             gaps_residues = []
+            gaps_e = []
+            gaps_b = []
         if chain.getChid() in no_gaps.keys():
-            no_gaps_residues = no_gaps[chain.getChid()]
+            no_gaps_residues = [y for x in no_gaps[chain.getChid()] for y in x]
         else:
             no_gaps_residues = []
         initial_residue, final_residue = FindInitialAndFinalResidues(chain)
@@ -70,14 +75,19 @@ def CheckStructure(initial_structure, gaps={}, no_gaps={}, remove_missing_ter=Fa
             residue_atomnames = list(residue.getNames())
             if resname[:2] == "CU":
                 resname = "CU"
-            if resnum == initial_residue and resname in supported_aminoacids:
-                zmatrix = ZMATRIX(resname + 'B')
-            elif resnum == final_residue:
-                zmatrix = ZMATRIX(resname + "E")
-            elif resname == "NMA":
-                zmatrix = ZMATRIX(resname + "E")
-            elif resname == "ACE":
-                zmatrix = ZMATRIX(resname + "B")
+            if resname in supported_aminoacids:
+                # if resnum == initial_residue:
+                if resnum == initial_residue or resnum in gaps_b:
+                    zmatrix = ZMATRIX(resname + 'B')
+                # elif resnum == final_residue:
+                elif resnum == final_residue or resnum in gaps_e:
+                    zmatrix = ZMATRIX(resname + "E")
+                elif resname == "NMA":
+                    zmatrix = ZMATRIX(resname + "E")
+                elif resname == "ACE":
+                    zmatrix = ZMATRIX(resname + "B")
+                else:
+                    zmatrix = ZMATRIX(resname)
             else:
                 try:
                     zmatrix = ZMATRIX(resname)
@@ -90,15 +100,19 @@ def CheckStructure(initial_structure, gaps={}, no_gaps={}, remove_missing_ter=Fa
             if sorted(zmatrix.AtomNames) != residue_atomnames:
                 missing_atoms = [atom_name for atom_name in zmatrix.AtomNames if atom_name not in residue_atomnames]
                 over_atoms = [atom_name for atom_name in residue_atomnames if atom_name not in zmatrix.AtomNames]
+                if residue.getChid() == 'H' and resnum in [101, 128]:
+                    print resname, missing_atoms, resnum, zmatrix.AtomNames, residue_atomnames
+
                 if over_atoms:
-                    if residue.getResnum() in gaps_residues or residue.getResnum() in [initial_residue, final_residue]:
+                    if resnum == final_residue or  resnum in gaps_e:
+                        # print 'a'
                         if "HXT" in over_atoms:
                             over_atoms.pop(over_atoms.index('HXT'))
-                        else:
-                            if "H1" in over_atoms:
-                                over_atoms.pop(over_atoms.index('H1'))
-                            if "H2" in over_atoms:
-                                over_atoms.pop(over_atoms.index('H2'))
+                    elif resnum == initial_residue or resnum in gaps_b:
+                        if "H1" in over_atoms:
+                            over_atoms.pop(over_atoms.index('H1'))
+                        if "H2" in over_atoms:
+                            over_atoms.pop(over_atoms.index('H2'))
                     else:
                         print "   The residue {} {} has more atoms than the zmatrix.".format(resname, resnum)
                     if debug:
@@ -108,18 +122,18 @@ def CheckStructure(initial_structure, gaps={}, no_gaps={}, remove_missing_ter=Fa
                 if missing_atoms:
                     if "CA" in missing_atoms or "N" in missing_atoms or "O" in missing_atoms or "C" in missing_atoms:
                         print "  The residue {} {} is missing one or more heavy atoms in the backbone. " \
-                              "It cannot be fixed.".format(residue.getResname(), residue.getResnum(), residue.getChid())
+                              "It cannot be fixed.".format(resname, resnum, residue.getChid())
                         if remove_missing_ter:
-                            if residue.getResnum() in [initial_residue, final_residue]:
+                            if resnum in [initial_residue, final_residue]:
                                 print " INFO: In structure {} the residue {} {} in chain {} will be eliminated".format(
                                     initial_structure.getTitle(), residue.getResname(),
-                                    residue.getResnum(), residue.getChid())
+                                    resnum, residue.getChid())
                                 try:
                                     residues2remove[residue.getChid()]
                                 except KeyError:
-                                    residues2remove[residue.getChid()] = [residue.getResnum()]
+                                    residues2remove[residue.getChid()] = [resnum]
                                 else:
-                                    residues2remove[residue.getChid()].append(residue.getResnum())
+                                    residues2remove[residue.getChid()].append(resnum)
                                 if resnum == initial_residue:
                                     next_res_resnum = resnum + 1
                                     next_residue = chain.getResidue(next_res_resnum)
@@ -175,10 +189,10 @@ def CheckStructure(initial_structure, gaps={}, no_gaps={}, remove_missing_ter=Fa
                                 elif "HG" in missing_atoms:
                                     missing_atoms.pop(missing_atoms.index('HG'))
                         for atom_name in missing_atoms:
-                            if atom_name[0] != "H" and atom_name[0].isalpha():
+                            if atom_name[0] != "H" and atom_name[0].isalpha() and atom_name != 'OXT':
                                 print "  The residue {} {} is missing the heavy atom {}.\n" \
-                                      "  All the atoms depending o this atom will be placed according to the zmatrix.".format(
-                                        resname, resnum, atom_name)
+                                      "  All the atoms depending on this atom will" \
+                                      " be placed according to the zmatrix.".format(resname, resnum, atom_name)
                                 atoms2add = zmatrix.GetAllChildrenAtoms(atom_name)
                                 residues2fix["{} {} {}".format(resname, resnum, residue.getChid())] = set(atoms2add).union(
                                     set(missing_atoms))
@@ -371,36 +385,36 @@ def CheckforGaps(structure):
             chain_id = chain.getChid()
             # print residue.getResnum() < previous_residue_number
             if previous_residue_number is not None:
-                if residue.getResnum() > previous_residue_number + 1:
-                    current_residue_N = residue.getAtom("N")
-                    previous_residue = chain.getResidue(previous_residue_number)
-                    previous_residue_C = previous_residue.getAtom('C')
-                    if residue.getResname() in supported_aminoacids:
-                        if current_residue_N is not None and previous_residue_C is not None:
-                            distance = calcDistance(current_residue_N, previous_residue_C)
-                            if distance < 1.5:
-                                try:
-                                    not_gaps[chain_id]
-                                except KeyError:
-                                    not_gaps[chain_id] = []
-                                not_gaps[chain_id].extend([previous_residue_number, residue.getResnum()])
-                            else:
-                                try:
-                                    gaps[chain_id]
-                                except KeyError:
-                                    gaps[chain_id] = []
-                                gaps[chain_id].extend([previous_residue_number, residue.getResnum()])
-                        elif current_residue_N is None:
-                            print "There's a problem with residue {} {} {} it" \
-                                  " doesn't have the N atom".format(residue.getResname(),
-                                                                    residue.getResnum(),
-                                                                    residue.getChid())
-                        elif previous_residue_C is None:
-                            print "There's a problem with residue {} {} {} it doesn't have the C atom".format(
-                                previous_residue.getResname(),
-                                previous_residue.getResnum(),
-                                previous_residue.getChid())
-                elif residue.getResnum() == previous_residue_number:
+                # if residue.getResnum() > previous_residue_number + 1:
+                current_residue_N = residue.getAtom("N")
+                previous_residue = chain.getResidue(previous_residue_number)
+                previous_residue_C = previous_residue.getAtom('C')
+                if residue.getResname() in supported_aminoacids:
+                    if current_residue_N is not None and previous_residue_C is not None:
+                        distance = calcDistance(current_residue_N, previous_residue_C)
+                        if distance < 1.5:
+                            try:
+                                not_gaps[chain_id]
+                            except KeyError:
+                                not_gaps[chain_id] = []
+                            not_gaps[chain_id].append([previous_residue_number, residue.getResnum()])
+                        else:
+                            try:
+                                gaps[chain_id]
+                            except KeyError:
+                                gaps[chain_id] = []
+                            gaps[chain_id].append([previous_residue_number, residue.getResnum()])
+                    elif current_residue_N is None:
+                        print "There's a problem with residue {} {} {} it" \
+                              " doesn't have the N atom".format(residue.getResname(),
+                                                                residue.getResnum(),
+                                                                residue.getChid())
+                    elif previous_residue_C is None:
+                        print "There's a problem with residue {} {} {} it doesn't have the C atom".format(
+                            previous_residue.getResname(),
+                            previous_residue.getResnum(),
+                            previous_residue.getChid())
+                if residue.getResnum() == previous_residue_number:
                     if residue.getIcode() == '':
                         if residue.hetero is not None:
                             residue.setResnum(previous_residue_number + 1)
