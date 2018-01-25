@@ -53,7 +53,7 @@ def main(input_pdb, output_pdb="", no_gaps_ter=False, charge_terminals=False, ma
                                                    remove_terminal_missing)
     if residues2fix:
         print '* Placing the missing atoms and removing the extra atoms:'
-        structure2use = FixStructure(structure2use, residues2fix)
+        structure2use = FixStructure(structure2use, residues2fix, gaps, charge_terminals)
     print mutation
 
     if not mutation:
@@ -118,6 +118,7 @@ if __name__ == '__main__':
     if arguments is None:
         sys.exit()
     else:
-        main(arguments.input_pdb, arguments.output_pdb, arguments.no_gaps_ter, make_unique=arguments.make_unique,
+        main(arguments.input_pdb, output_pdb=arguments.output_pdb, no_gaps_ter=arguments.no_gaps_ter,
+             charge_terminals=arguments.charge_terminals, make_unique=arguments.make_unique,
              remove_terminal_missing=arguments.remove_terminal_missing, mutant_multiple=arguments.mutant_multiple,
              mutation=arguments.mutation)

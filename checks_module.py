@@ -103,6 +103,7 @@ def CheckStructure(initial_structure, gaps={}, no_gaps={}, charge_terminals=Fals
             if sorted(zmatrix.AtomNames) != residue_atomnames:
                 atoms2delete = []
                 atoms2add = []
+                atoms2modify = []
                 missing_atoms = [atom_name for atom_name in zmatrix.AtomNames if atom_name not in residue_atomnames]
                 over_atoms = [atom_name for atom_name in residue_atomnames if atom_name not in zmatrix.AtomNames]
                 if over_atoms:
@@ -111,10 +112,10 @@ def CheckStructure(initial_structure, gaps={}, no_gaps={}, charge_terminals=Fals
                             if "HXT" in over_atoms:
                                 over_atoms.pop(over_atoms.index('HXT'))
                                 if 'OXT' in missing_atoms:
-                                    residue.getAtom('HXT').setName('OXT')  # This changes the atom name
+                                    atoms2modify.append(['HXT', 'OXT'])  # This changes the atom name
                                     missing_atoms.pop(missing_atoms.index('OXT'))
                                 else:
-                                    atoms2delete.append('OXT')
+                                    atoms2delete.append('HXT')
                         elif resnum == initial_residue or resnum in gaps_b:
                             if "H1" in over_atoms:
                                 over_atoms.pop(over_atoms.index('H1'))
@@ -129,10 +130,10 @@ def CheckStructure(initial_structure, gaps={}, no_gaps={}, charge_terminals=Fals
                             if "H1" in over_atoms:
                                 over_atoms.pop(over_atoms.index('H1'))
                                 if 'H' in missing_atoms:
-                                    residue.getAtom('H1').setName('H')  # This changes the atom name
                                     missing_atoms.pop(missing_atoms.index('H'))
+                                    atoms2modify.append(['H1', 'H'])  # This changes the atom name
                                 else:
-                                    atoms2delete.append('H')
+                                    atoms2delete.append('H1')
                             if "H2" in over_atoms:
                                 over_atoms.pop(over_atoms.index('H2'))
                                 atoms2delete.append('H2')
@@ -189,8 +190,10 @@ def CheckStructure(initial_structure, gaps={}, no_gaps={}, charge_terminals=Fals
                                             else:
                                                 atom.setName("H1")
                                                 atoms2add = {"H2"}
-                                        # residues2fix["{} {} {}".format(next_res_resname, next_res_resnum,
-                                        #                                residue.getChid())] = atoms2add
+                                        key = "{} {} {}".format(next_res_resname, next_res_resnum, residue.getChid())
+                                        residues2fix[key]['add'] = atoms2add
+                                        residues2fix[key]['delete'] = []
+                                        residues2fix[key]['modify'] = []
                                 elif resnum == final_residue:
                                     prev_res_resnum = resnum - 1
                                     prev_residue = chain.getResidue(prev_res_resnum)
@@ -200,8 +203,15 @@ def CheckStructure(initial_structure, gaps={}, no_gaps={}, charge_terminals=Fals
                                     elif charge_terminals:
                                         prev_res_resname = prev_residue.getResnames()[0]
                                         atoms2add = {"OXT"}
-                                        # residues2fix["{} {} {}".format(prev_res_resname, prev_res_resnum,
-                                        #                                residue.getChid())] = atoms2add
+                                        key = "{} {} {}".format(prev_res_resname, prev_res_resnum, residue.getChid())
+                                        try:
+                                            residues2fix[key]
+                                        except KeyError:
+                                            residues2fix[key]['add'] = atoms2add
+                                            residues2fix[key]['delete'] = []
+                                            residues2fix[key]['modify'] = []
+                                        else:
+                                            residues2fix[key]['add'] += atoms2add
                         else:
                             print "  The program will be interrupted.".format(resname, resnum)
                             print "     This are the missing atoms: {}".format(missing_atoms)
@@ -231,9 +241,16 @@ def CheckStructure(initial_structure, gaps={}, no_gaps={}, charge_terminals=Fals
                                 atoms2add = set(atoms2add).union(set(missing_atoms))
                             elif resnum not in residues2ignore:
                                 atoms2add = set(missing_atoms)
-                if atoms2add or atoms2delete:
-                    residues2fix["{} {} {}".format(resname, resnum, residue.getChid())] = {'add': atoms2add,
-                                                                                           'delete': atoms2delete}
+                key = "{} {} {}".format(resname, resnum, residue.getChid())
+                try:
+                    residues2fix[key]
+                except KeyError:
+                    if atoms2add or atoms2delete or atoms2modify:
+                        residues2fix[key] = {'add': atoms2add, 'delete': atoms2delete, 'modify': atoms2modify}
+                else:
+                    residues2fix[key]['add'] += atoms2add,
+                    residues2fix[key]['delete'] += atoms2delete
+                    residues2fix[key]['modify'] += atoms2modify
     # print residues2fix, residues2remove
     return residues2fix, residues2remove
 
