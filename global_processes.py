@@ -115,8 +115,10 @@ def ParseArguments():
                         help=parameters_help.mutation_description)
     parser.add_argument("-mutants_from_file", '-mut_file', default=False,
                         help=parameters_help.mutants_from_file_description)
-    parser.add_argument("-mutant_multiple", action="store_true", default=False,
+    parser.add_argument("-mutant_multiple", action="store_true",
                         help=parameters_help.mutant_multiple_description)
+    parser.add_argument("-charge_terminals", action="store_true",
+                        help=parameters_help.charge_terminals_description)
     parser.add_argument("-no_gaps_ter", action="store_true", default=False,
                         help=parameters_help.no_gaps_ter_description)
     parser.add_argument("-make_unique", default=False,
