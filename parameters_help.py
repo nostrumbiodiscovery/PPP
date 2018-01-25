@@ -43,6 +43,9 @@ mutant_multiple_description = "This parameter creates one structure with all the
                               " mutations specified. But it doesn't check for clashes."
 charge_terminals_description = "When this option is present the program will charge all the terminals residues," \
                                "including those in gaps."
+remove_terminal_missing_description = "Whe this option is chosen the program will remove the terminal residues " \
+                                      "in case they are missing heavy atoms in the backbone of the protein" \
+                                      "(that is: N, CA, C, O)."
 no_gaps_ter_description = "When this option is present the program won't add a TER mark whenever it finds " \
                        "a gap in the sequence."
 make_unique_description = "This option is optional and should be present if the user wants to make the names " \

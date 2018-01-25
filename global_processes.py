@@ -123,7 +123,8 @@ def ParseArguments():
                         help=parameters_help.no_gaps_ter_description)
     parser.add_argument("-make_unique", default=False,
                         help=parameters_help.make_unique_description)
-    parser.add_argument("-remove_terminal_missing", default=False, action="store_true")
+    parser.add_argument("-remove_terminal_missing", default=False, action="store_true",
+                        help=parameters_help.remove_terminal_missing_description)
     # parser.add_argument('-force_field', '-ff', type=str, default="OPLS2005",
     #                     choices=["OPLS2005", "OPLS2001", "AMBER99sbBSC0"],
     #                     help=parameters_help.ff_description)
