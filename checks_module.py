@@ -25,7 +25,7 @@ def CheckCysteines(structure):
         for cysteine in structure.select('resname CYS').copy().iterResidues():
             if "HG" in cysteine.getNames():
                 continue
-            key = "{}_{}".format(cysteine.getResnum(), cysteine.getChid())
+            key = "{}_{}".format(cysteine.getChid(), cysteine.getResnum())
             if key in crosslinked_cys:
                 continue
             elif key in charged_cys:
@@ -41,11 +41,18 @@ def CheckCysteines(structure):
                 print "CYS/CYT classification WTF.1??"
             elif "SG" in neighbours.getNames():
                 crosslinked_cys.append(key)
-                key2 = "{}_{}".format(neighbours.select('name SG').getResnums()[0],
-                                      neighbours.select('name SG').getChids()[0])
+                key2 = "{}_{}".format(neighbours.select('name SG').getChids()[0],
+                                      neighbours.select('name SG').getResnums()[0])
                 crosslinked_cys.append(key2)
+
             else:
                 charged_cys.append(key)
+    if crosslinked_cys:
+        writing_list = ["     * CYS_{} - CYS_{}".format(x, y) for x,y in zip(crosslinked_cys[0::2], crosslinked_cys[1::2])]
+        print "  * The following cysteins will be considered as cross-linked:\n{0}".format("\n".join(writing_list))
+    if charged_cys:
+        writing_list = ["     * CYS_{}".format(k) for k in charged_cys]
+        print "  * The following cysteins will be considered as cross-linked:\n{0}".format("\n".join(writing_list))
     return crosslinked_cys, charged_cys
 
 
@@ -179,7 +186,7 @@ def CheckStructure(initial_structure, gaps={}, no_gaps={}, remove_missing_ter=Fa
                                 atom.setName('H')
                                 missing_atoms.pop(missing_atoms.index('H'))
 
-                        key = "{}_{}".format(resnum, residue.getChid())
+                        key = "{}_{}".format(residue.getChid(), resnum)
                         if resname == "CYS":
                             if key in crosslinked_cysteines + charged_cysteines:
                                 if key in charged_cysteines:
