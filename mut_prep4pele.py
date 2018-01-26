@@ -22,8 +22,8 @@ addNonstdAminoacid('CYT', 'neutral', 'acyclic', 'medium', 'polar', 'buried')
 addNonstdAminoacid('LYN', 'neutral', 'acyclic', 'large', 'polar', 'buried')
 
 
-def main(input_pdb, output_pdb="", no_gaps_ter=False, make_unique=False, mutant_multiple=False,
-         mutation="", remove_terminal_missing=False):
+def main(input_pdb, output_pdb="", no_gaps_ter=False, charge_terminals=False, make_unique=False,
+         remove_terminal_missing=False, mutant_multiple=False, mutation=""):
     try:
         initial_structure = parsePDB(input_pdb)
     except IOError:
@@ -49,10 +49,11 @@ def main(input_pdb, output_pdb="", no_gaps_ter=False, make_unique=False, mutant_
     print "* Checking and fixing the Atoms Names:"
     structure2use = FixAtomNames(structure2use, gaps, not_gaps)
     print "* Checking the structure for missing atoms:"
-    residues2fix, residues2remove = CheckStructure(structure2use, gaps, not_gaps, remove_terminal_missing)
+    residues2fix, residues2remove = CheckStructure(structure2use, gaps, not_gaps, charge_terminals,
+                                                   remove_terminal_missing)
     if residues2fix:
-        print '* Placing the missing atoms:'
-        structure2use = FixStructure(structure2use, residues2fix)
+        print '* Placing the missing atoms and removing the extra atoms:'
+        structure2use = FixStructure(structure2use, residues2fix, gaps, charge_terminals)
     print mutation
 
     if not mutation:
@@ -117,5 +118,7 @@ if __name__ == '__main__':
     if arguments is None:
         sys.exit()
     else:
-        main(arguments.input_pdb, arguments.output_pdb, arguments.no_gaps_ter, arguments.make_unique,
-             arguments.mutant_multiple, arguments.mutation, arguments.remove_terminal_missing)
+        main(arguments.input_pdb, output_pdb=arguments.output_pdb, no_gaps_ter=arguments.no_gaps_ter,
+             charge_terminals=arguments.charge_terminals, make_unique=arguments.make_unique,
+             remove_terminal_missing=arguments.remove_terminal_missing, mutant_multiple=arguments.mutant_multiple,
+             mutation=arguments.mutation)
