@@ -166,9 +166,10 @@ def FixStructure(initial_structure, residues2fix, gaps, charge_terminals, debug=
                     zmatrix = ZMATRIX(resname)
                     atoms2add = residues2fix[res_id]['add']
                 if residues2fix[res_id]['delete']:
-                    print "  * Removing from the residue {0:3} {1:1} {2:3} the atoms:" \
-                          " {3}".format(residue.getResname(), residue.getChid(), residue.getResnum(),
-                                        " ".join(residues2fix[res_id]['delete']))
+                    print "  * Removing the charge from the terminal residue {0:3} {1:1} {2:3}. " \
+                          "The removed atoms are : {3}".format(residue.getResname(),
+                                                               residue.getChid(), residue.getResnum(),
+                                                               " ".join(residues2fix[res_id]['delete']))
                     new_residue = residue.select('not name {}'.format(" ".join(residues2fix[res_id]['delete']))).copy()
                     old_res = new_residue
                 if residues2fix[res_id]['modify']:
