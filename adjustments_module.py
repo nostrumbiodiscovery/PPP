@@ -5,7 +5,7 @@ from prody import calcDistance
 from checks_module import CheckClashes
 from coordinates_module import ChangeResidueCoordinates
 from global_processes import FindInitialAndFinalResidues
-from global_variables import names_dictionary, supported_aminoacids
+from global_variables import protein_atomnames_dictionary, supported_aminoacids
 from program_own_classes import ROTAMERLIB
 
 __author__ = 'jelisa'
@@ -88,7 +88,7 @@ def FixAtomNames(initial_structure, gaps={}, no_gaps={}, debug=False):
         if debug:
             print "working with chain {}".format(chain.getChid())
         for residue in chain.iterResidues():
-            tmp_dictio = copy.deepcopy(names_dictionary)
+            tmp_dictio = copy.deepcopy(protein_atomnames_dictionary)
             resname = residue.getResname()
             try:
                 possible_names = tmp_dictio[resname]
@@ -103,7 +103,7 @@ def FixAtomNames(initial_structure, gaps={}, no_gaps={}, debug=False):
                     heteroatom = False
             if residue.getResnum() == initial_res or residue.getResnum() in gaps_b:
                 # This magic number 0 comes from the fact that for all the aminoacids
-                # except the proline the first set of atoms in the names_dictionary
+                # except the proline the first set of atoms in the protein_atomnames_dictionary
                 # should have the hydrogen H from the nitrogen, but if the residue is the
                 # first one in the protein it should be changed into H3 which belongs to
                 # the "END" keyword in the names dictionary.

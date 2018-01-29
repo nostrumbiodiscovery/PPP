@@ -3,7 +3,7 @@ import sys
 from prody import Contacts, calcDistance
 
 from global_processes import FindInitialAndFinalResidues
-from global_variables import supported_aminoacids
+from global_variables import supported_aminoacids, supported_metals
 from program_own_classes import ZMATRIX
 
 __author__ = 'jelisa'
@@ -56,11 +56,34 @@ def CheckCysteines(structure):
     return crosslinked_cys, charged_cys
 
 
+def CheckMetalsCoordination(structure):
+    """
+    A function to detect the metal atoms that could be coordinated with the protein.
+    :param structure:
+    :return:
+    """
+    selection_pattern = "(within 3 of metal) and (not resnum {}) and (not hydrogen)"
+    for metal in supported_metals:
+        if structure.select('resname {}'.format(metal)) is not None:
+            for metal_res in structure.select('resname {}'.format(metal)).copy().iterResidues():
+                if metal_res.numAtoms() != 1:
+                    continue
+                coordinated_atoms = structure.select(selection_pattern.format(metal_res.getResnum()),
+                                                      metal=metal_res)
+                if coordinated_atoms is None:
+                    print " The metal atom {} isn't coordinated with the protein. Are you sure it's necessary?"
+                else:
+                    coordinated_atoms_ids = [[at.getName(), at.getResnum(), at.getChid()]
+                                             for at in coordinated_atoms.iterAtoms()]
+
+
+
 def CheckStructure(initial_structure, gaps={}, no_gaps={}, charge_terminals=False, remove_missing_ter=False,
                    debug=False):
     residues2fix = {}
     crosslinked_cysteines, charged_cysteines = CheckCysteines(initial_structure)
     residues2remove = {}
+    metals2coordinate = {'complete': {}, 'incomplete': {}}
     for chain in initial_structure.iterChains():
         if chain.getChid() in gaps.keys():
             gaps_e = [x[0] for x in gaps[chain.getChid()]]
@@ -74,8 +97,8 @@ def CheckStructure(initial_structure, gaps={}, no_gaps={}, charge_terminals=Fals
             resname = residue.getResname().strip()
             resnum = residue.getResnum()
             residue_atomnames = list(residue.getNames())
-            if resname[:2] == "CU":
-                resname = "CU"
+            if resname in supported_metals:
+                continue
             if resname in supported_aminoacids:
                 if charge_terminals:
                     if resnum == initial_residue or resnum in gaps_b:
