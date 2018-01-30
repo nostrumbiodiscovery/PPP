@@ -78,8 +78,22 @@ def CheckMetalsCoordination(structure):
                     coordinated_atoms_ids = []
                     print "     * The metal atom {} isn't coordinated with the protein. Are you sure it's necessary?"
                 else:
-                    coordinated_atoms_ids = [[at.getName(), at.getResnum(), at.getChid()]
-                                             for at in coordinated_atoms.iterAtoms()]
+                    coordinated_atoms_ids = []
+                    prev_atom = None
+                    for at in coordinated_atoms.iterAtoms():
+                        if prev_atom is None:
+                            coordinated_atoms_ids.append([at.getName(), at.getResnum(), at.getChid()])
+                            prev_atom = at
+                        else:
+                            if at.getResnum() == prev_atom.getResnum() and\
+                                    (at.getIndex() == prev_atom.getIndex() + 1 or at.getResname() in ['ASP', 'GLU']):
+                                    if calcDistance(at, metal_res) > calcDistance(prev_atom, metal_res):
+                                        prev_atom = None
+                                        continue
+                                    else:
+                                        coordinated_atoms_ids.pop(-1)
+                            coordinated_atoms_ids.append([at.getName(), at.getResnum(), at.getChid()])
+                            prev_atom = at
                     print "     * The metal atom {} has the following atoms within coordination " \
                           "distance:".format(metal_id)
                     print "\n".join(['       * {0[0]}_{0[1]}_{0[2]}'.format(x)
