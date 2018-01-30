@@ -62,20 +62,30 @@ def CheckMetalsCoordination(structure):
     :param structure:
     :return:
     """
-    selection_pattern = "(within 3 of metal) and (not resnum {}) and (not hydrogen)"
+    selection_pattern = "(within 3 of metal) and (not resnum {}) and (not hydrogen) and (not carbon)"
+    coordinated_metals = {}
     for metal in supported_metals:
         if structure.select('resname {}'.format(metal)) is not None:
+            print "  * Checking the metals that can be coordinated. (" \
+                          "a constraint should be used if they're really coordinated)"
             for metal_res in structure.select('resname {}'.format(metal)).copy().iterResidues():
+                metal_id = "{} {} {}".format(metal_res.getResname(), metal_res.getResnum(), metal_res.getChid())
                 if metal_res.numAtoms() != 1:
                     continue
                 coordinated_atoms = structure.select(selection_pattern.format(metal_res.getResnum()),
                                                       metal=metal_res)
                 if coordinated_atoms is None:
-                    print " The metal atom {} isn't coordinated with the protein. Are you sure it's necessary?"
+                    coordinated_atoms_ids = []
+                    print "     * The metal atom {} isn't coordinated with the protein. Are you sure it's necessary?"
                 else:
                     coordinated_atoms_ids = [[at.getName(), at.getResnum(), at.getChid()]
                                              for at in coordinated_atoms.iterAtoms()]
-
+                    print "     * The metal atom {} has the following atoms within coordination " \
+                          "distance:".format(metal_id)
+                    print "\n".join(['       * {0[0]}_{0[1]}_{0[2]}'.format(x)
+                                           for x in coordinated_atoms_ids])
+                coordinated_metals[metal_id] = coordinated_atoms_ids
+    return coordinated_metals
 
 
 def CheckStructure(initial_structure, gaps={}, no_gaps={}, charge_terminals=False, remove_missing_ter=False,
@@ -83,7 +93,7 @@ def CheckStructure(initial_structure, gaps={}, no_gaps={}, charge_terminals=Fals
     residues2fix = {}
     crosslinked_cysteines, charged_cysteines = CheckCysteines(initial_structure)
     residues2remove = {}
-    metals2coordinate = {'complete': {}, 'incomplete': {}}
+    metals2coordinate = CheckMetalsCoordination(initial_structure)
     for chain in initial_structure.iterChains():
         if chain.getChid() in gaps.keys():
             gaps_e = [x[0] for x in gaps[chain.getChid()]]
@@ -242,12 +252,14 @@ def CheckStructure(initial_structure, gaps={}, no_gaps={}, charge_terminals=Fals
                     else:
                         if "H" in missing_atoms and resnum in gaps_b and resnum not in residues2ignore:
                             maestro_terminal_H = ["H1", "H2", "H11", "H22"]
-                            atomname_to_use = [atom_name for atom_name in maestro_terminal_H
-                                               if atom_name in residue.getNames()][0]
-                            if atomname_to_use:
-                                atom = residue.getAtom(atomname_to_use)
-                                atom.setName('H')
-                                missing_atoms.pop(missing_atoms.index('H'))
+                            possible_atoms2change = [atom_name for atom_name in maestro_terminal_H
+                                               if atom_name in residue.getNames()]
+                            if possible_atoms2change:
+                                atomname_to_use = [0]
+                                if atomname_to_use:
+                                    atom = residue.getAtom(atomname_to_use)
+                                    atom.setName('H')
+                                    missing_atoms.pop(missing_atoms.index('H'))
                         if resname == "CYS":
                             key = "{}_{}".format(residue.getChid(), resnum)
                             if key in crosslinked_cysteines + charged_cysteines:
@@ -275,7 +287,7 @@ def CheckStructure(initial_structure, gaps={}, no_gaps={}, charge_terminals=Fals
                     residues2fix[key]['delete'] += atoms2delete
                     residues2fix[key]['modify'] += atoms2modify
     # print residues2fix, residues2remove
-    return residues2fix, residues2remove
+    return residues2fix, residues2remove, metals2coordinate
 
 
 def CheckMapAndZmatrix(zmap_atoms, mutation_map, mutation, residue):

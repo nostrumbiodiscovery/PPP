@@ -93,7 +93,7 @@ def FixAtomNames(initial_structure, gaps={}, no_gaps={}, debug=False):
             try:
                 possible_names = tmp_dictio[resname]
             except KeyError:
-                print ' The residue {} is not an aa nor a water.'.format(resname)
+                print '   * The residue {} is not an aa nor a water.'.format(resname)
                 possible_names = [["CL"], ["CU"], ["FE1"], ["FE2"], ["ZN"], ["MG"]]
                 heteroatom = True
             else:
@@ -141,11 +141,11 @@ def FixAtomNames(initial_structure, gaps={}, no_gaps={}, debug=False):
                         if residue.getResnum() in gaps_residues or residue.getResnum() in [initial_res, final_res]:
                             pass
                         elif residue.getResnum() in no_gaps_residues:
-                            print "This residue {} won't be considered as a gap, if it really is one," \
+                            print "   * This residue {} won't be considered as a gap, if it really is one," \
                                   " let the developer know".format("{} {}".format(residue.getResnum(),
                                                                                   residue.getChid()))
                     else:
-                        print "  The Atom {} from residue {} {} {} doesn't have a valid name.".format(atom_name,
+                        print "   * The Atom {} from residue {} {} {} doesn't have a valid name.".format(atom_name,
                                                                                                       resname,
                                                                                                       atom.getChid(),
                                                                                                       atom.getResnum())

@@ -49,8 +49,8 @@ def main(input_pdb, output_pdb="", no_gaps_ter=False, charge_terminals=False, ma
     print "* Checking and fixing the Atoms Names:"
     structure2use = FixAtomNames(structure2use, gaps, not_gaps)
     print "* Checking the structure for missing atoms:"
-    residues2fix, residues2remove = CheckStructure(structure2use, gaps, not_gaps, charge_terminals,
-                                                   remove_terminal_missing)
+    residues2fix, residues2remove, metals2coordinate = CheckStructure(structure2use, gaps, not_gaps, charge_terminals,
+                                                                      remove_terminal_missing)
     if residues2fix:
         print '* Placing the missing atoms and removing the extra atoms:'
         structure2use = FixStructure(structure2use, residues2fix, gaps, charge_terminals)

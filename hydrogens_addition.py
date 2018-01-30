@@ -37,10 +37,16 @@ def PlaceSpecialAtoms(old_residue, atom_name, structure, resnum, zmatrix, verbos
     element = "H"
     if atom_name == "H":
         previous_residue = structure.select("resnum {}".format(resnum - 1))
-        at3 = current_residue.select("name N")
-        at2 = previous_residue.select("name C")
-        at1 = previous_residue.select("name O")
-        fi = 180
+        if previous_residue is None:
+            at3 = current_residue.select("name N")
+            at2 = current_residue.select("name C")
+            at1 = current_residue.select("name O")
+            fi = 180
+        else:
+            at3 = current_residue.select("name N")
+            at2 = previous_residue.select("name C")
+            at1 = previous_residue.select("name O")
+            fi = 180
     elif atom_name in ["HA2", "HA"]:
         # print '2'
         previous_residue = structure.select("resnum {}".format(resnum - 1))
@@ -196,7 +202,7 @@ def FixStructure(initial_structure, residues2fix, gaps, charge_terminals, debug=
                         print 'residues2fix:', residues2fix[res_id]
                     residue_info = {"fin_resname": resname, "resnum": resnum, "chain": residue.getChid()}
                     if resname == "HOH":
-                        print "  ** The water {0:3} {1:1} {2:3} is missing the atoms: {}.\n" \
+                        print "  ** The water {0:3} {1:1} {2:3} is missing the atoms: {3}.\n" \
                               "  ** The program won't place them. \n" \
                               "  ** PELE will crash".format(resname, residue.getChid(), resnum,
                                                             ", ".join(residues2fix[res_id]['add']))
