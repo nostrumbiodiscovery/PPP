@@ -247,6 +247,11 @@ protein_atomnames_dictionary = {
 
 supported_metals = ["MN", "MG", "ZN", "CA", "CU", "FE", "NI", "CO", "PB"]
 
+coordination_geometries = {
+    'octahedric': [[90, 180], 6],
+    'tetrahedric': [[109.5], 4]
+}
+
 default_mutations_maps = {
     'ALA-ARG': [
         ['N', 'H', 'CA', 'HA', 'C', 'O', 'CB'],

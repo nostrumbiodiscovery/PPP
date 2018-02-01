@@ -1,9 +1,9 @@
 import sys
 
-from prody import Contacts, calcDistance
+from prody import Contacts, calcDistance, calcAngle
 
 from global_processes import FindInitialAndFinalResidues
-from global_variables import supported_aminoacids, supported_metals
+from global_variables import supported_aminoacids, supported_metals, coordination_geometries
 from program_own_classes import ZMATRIX
 
 __author__ = 'jelisa'
@@ -56,6 +56,62 @@ def CheckCysteines(structure):
     return crosslinked_cys, charged_cys
 
 
+# def CheckTetrahedricConformation(angles):
+#     right_conformation = False
+#     distorted_angles = []
+#     ok_angles = []
+#     accepted_angles = coordination_geometries['tetrahedric']
+#     for angle in angles:
+#         if angle[3] < accepted_angles[0] - 15 or angle[3] > accepted_angles[0] + 15:
+#             distorted_angles.append(angle)
+#         else:
+#             ok_angles.append(angle)
+#     if len(ok_angles) > len(distorted_angles):
+#         if distorted_angles:
+#             print "       * The following angle(s) are distorted for this geometry:\n{}".format(
+#                 "       * {} {} {}".format(angle[0].getName(), angle[0].getResnum(), angle[0].getChid()))
+#         right_conformation = True
+#     return  right_conformation
+
+
+def CheckConformation(angles, conformation):
+    """
+    A function to check that the angles are within the right range for a given conformation
+    :param angles: a list containing the three atoms involved in the angle (prody instances) and the
+    angle in the position 3
+    :param conformation: a string containing the name of the conformation to check, it should be one defined in
+    global_variables.coordination_geometries
+    :return: a boolean indicating whether the conformation is right or not
+    """
+    right_conformation = False
+    distorted_angles = []
+    ok_angles = []
+    accepted_angles, needed_atoms = coordination_geometries[conformation]
+    if conformation not in coordination_geometries.keys():
+        print "      * The desired coordination isn't implemented."
+    else:
+        if len(angles) < needed_atoms:
+            print "       * WARNING: The metal is missing atoms to coordinated with"
+
+    for angle in angles:
+        for a_angle in accepted_angles:
+            if a_angle - 15 <= angle[3] <= a_angle + 15:
+                ok_angles.append(angle)
+            else:
+                distorted_angles.append(angle)
+    if len(ok_angles) > len(distorted_angles):
+        if distorted_angles:
+            # print [[[x.getName(), x.getResnum(), x.getChid()] for x in angle[]] for angle in distorted_angles]
+            print "       * The angle(s) formed by the following atoms are distorted for this geometry:"#\n{}".format(
+            for angle in distorted_angles:
+                print "{} {} {} {}".format("        * ",
+                                           "{}-{}-{}".format(angle[0].getName(), angle[0].getResnum(), angle[0].getChid(),),
+                                           "{}-{}-{}".format(angle[1].getNames()[0], angle[1].getResnums()[0], angle[1].getChid()),
+                                           "{}-{}-{}".format(angle[2].getName(), angle[2].getResnum(), angle[2].getChid()))
+        right_conformation = True
+    return  right_conformation
+
+
 def CheckMetalsCoordination(structure):
     """
     A function to detect the metal atoms that could be coordinated with the protein.
@@ -69,37 +125,62 @@ def CheckMetalsCoordination(structure):
             print "  * Checking the metals that can be coordinated. (" \
                           "a constraint should be used if they're really coordinated)"
             for metal_res in structure.select('resname {}'.format(metal)).copy().iterResidues():
-                metal_id = "{} {} {}".format(metal_res.getResname(), metal_res.getResnum(), metal_res.getChid())
+                coordinated_atoms_list = []
                 if metal_res.numAtoms() != 1:
                     continue
                 coordinated_atoms = structure.select(selection_pattern.format(metal_res.getResnum()),
-                                                      metal=metal_res)
+                                                     metal=metal_res)
                 if coordinated_atoms is None:
-                    coordinated_atoms_ids = []
                     print "     * The metal atom {} isn't coordinated with the protein. Are you sure it's necessary?"
                 else:
-                    coordinated_atoms_ids = []
                     prev_atom = None
                     for at in coordinated_atoms.iterAtoms():
                         if prev_atom is None:
-                            coordinated_atoms_ids.append([at.getName(), at.getResnum(), at.getChid()])
+                            coordinated_atoms_list.append(at)
                             prev_atom = at
                         else:
-                            if at.getResnum() == prev_atom.getResnum() and\
+                            if at.getResnum() == prev_atom.getResnum() and \
                                     (at.getIndex() == prev_atom.getIndex() + 1 or at.getResname() in ['ASP', 'GLU']):
-                                    if calcDistance(at, metal_res) > calcDistance(prev_atom, metal_res):
-                                        prev_atom = None
-                                        continue
-                                    else:
-                                        coordinated_atoms_ids.pop(-1)
-                            coordinated_atoms_ids.append([at.getName(), at.getResnum(), at.getChid()])
+                                if calcDistance(at, metal_res) > calcDistance(prev_atom, metal_res):
+                                    prev_atom = None
+                                    continue
+                                else:
+                                    coordinated_atoms_list.pop(-1)
+                            coordinated_atoms_list.append(at)
                             prev_atom = at
-                    print "     * The metal atom {} has the following atoms within coordination " \
-                          "distance:".format(metal_id)
-                    print "\n".join(['       * {0[0]}_{0[1]}_{0[2]}'.format(x)
-                                           for x in coordinated_atoms_ids])
-                coordinated_metals[metal_id] = coordinated_atoms_ids
-    return coordinated_metals
+                    coordinated_metals[metal_res] = coordinated_atoms_list#, 'angles': angles}
+    if coordinated_metals:
+        coordinated_atoms_ids = {}
+        for metal, atoms_list in coordinated_metals.iteritems():
+            metal_id = "{} {} {}".format(metal.getResname(), metal.getChid(), metal.getResnum())
+            atoms_ids = ["{} {} {} {}".format(at.getResnum(), at.getResname(), at.getChid(), at.getName())
+                         for at in atoms_list]
+            coordinated_atoms_ids[metal_id] = atoms_ids
+            print "     * The metal atom {0} has the following atoms within coordination " \
+                  "distance:\n{1}".format(metal_id, "\n".join(['       * {0}'.format(x) for x in atoms_ids]))
+            found_conformation = False
+            angles = [[at, metal, at2, calcAngle(at, metal, at2)[0]]
+                      for idx,at in enumerate(atoms_list) for at2 in atoms_list[idx + 1:]]
+            if len(atoms_list) <= 4:
+                print "      * The atom seems to have a tetrahedric coordination."
+                found_conformation = CheckConformation(angles, 'tetrahedric')
+                if not found_conformation:
+                    print "        * The angles are too distorted to ascertain this configuration."
+            elif 4 < len(atoms_list) <= 6: #or not found_conformation:
+                print "      * The atom seems to have an octahedric coordination."
+                found_conformation = CheckConformation(angles, 'octahedric')
+                if not found_conformation:
+                    print "        * The angles are too distorted to ascertain this configuration."
+            else:
+                print "      * The metal doesn't have a coordination we can validate."
+
+
+    else:
+        print "    * There are no coordinated metals."
+
+        #
+    # return coordinated_atoms_ids
+    return coordinated_metals, coordinated_atoms_ids
 
 
 def CheckStructure(initial_structure, gaps={}, no_gaps={}, charge_terminals=False, remove_missing_ter=False,
