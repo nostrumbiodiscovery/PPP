@@ -232,8 +232,9 @@ def FixStructureResnames(initial_structure, ligand_chain=False):
                     resname = "HIE"
                 elif "HD1" in res.getNames() or "HND" in res.getNames():
                     resname = "HID"
-                else:
-                    print "The hystidine {} has an incorrect number of atoms.".format(res.getResnum())
+            else:
+                print "  * WARNING: The hystidine {} has an incorrect number " \
+                      "of atoms. PELE won't work correctly".format("{} {}".format(res.getResnum(), res.getChid(),))
         elif resname == "LYS":
             if res.numAtoms() == 21:
                 resname = "LYN"

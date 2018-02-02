@@ -176,7 +176,7 @@ def CheckMetalsCoordination(structure):
 
 
     else:
-        print "    * There are no coordinated metals."
+        print "  * There are no coordinated metals."
 
         #
     return coordinated_atoms_ids
@@ -225,7 +225,7 @@ def CheckStructure(initial_structure, gaps={}, no_gaps={}, charge_terminals=Fals
                 except:
                     print "UP {}".format(resname)
             if zmatrix.Name is None:
-                print "  The residue {} {} doesn't have a template, so it won't be checked.".format(resname, resnum)
+                print "  * The residue {} {} doesn't have a template, so it won't be checked.".format(resname, resnum)
                 continue
             residue_atomnames.sort()
             if sorted(zmatrix.AtomNames) != residue_atomnames:
