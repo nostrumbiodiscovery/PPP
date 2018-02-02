@@ -49,8 +49,10 @@ def main(input_pdb, output_pdb="", no_gaps_ter=False, charge_terminals=False, ma
     print "* Checking and fixing the Atoms Names:"
     structure2use = FixAtomNames(structure2use, gaps, not_gaps)
     print "* Checking the structure for missing atoms:"
-    residues2fix, residues2remove, metals2coordinate = CheckStructure(structure2use, gaps, not_gaps, charge_terminals,
-                                                                      remove_terminal_missing)
+    residues2fix, residues2remove, metals2coordinate, residues_without_template = CheckStructure(structure2use, gaps,
+                                                                                                 not_gaps,
+                                                                                                 charge_terminals,
+                                                                                                 remove_terminal_missing)
     if residues2fix:
         print '* Placing the missing atoms and removing the extra atoms:'
         structure2use = FixStructure(structure2use, residues2fix, gaps, charge_terminals)
@@ -70,7 +72,7 @@ def main(input_pdb, output_pdb="", no_gaps_ter=False, charge_terminals=False, ma
             not_proteic_ligand = None
             PDBwriter(output_pdb[0], WritingAtomNames(structure2use), make_unique, residues2remove,
                       no_gaps_ter, not_proteic_ligand, gaps, not_gaps)
-        sys.exit()
+        return residues_without_template, gaps, metals2coordinate
     else:
         clashes = []
         mutated_structure = None
@@ -111,6 +113,7 @@ def main(input_pdb, output_pdb="", no_gaps_ter=False, charge_terminals=False, ma
                     structure2use = mutated_structure
         if mutant_multiple and mutated_structure is not None:
             PDBwriter(output_pdb, WritingAtomNames(mutated_structure), gaps, not_gaps, no_gaps_ter)
+    # return residues_without_template, gaps, metals2coordinate
 
 
 if __name__ == '__main__':
@@ -118,7 +121,7 @@ if __name__ == '__main__':
     if arguments is None:
         sys.exit()
     else:
-        main(arguments.input_pdb, output_pdb=arguments.output_pdb, no_gaps_ter=arguments.no_gaps_ter,
+        a = main(arguments.input_pdb, output_pdb=arguments.output_pdb, no_gaps_ter=arguments.no_gaps_ter,
              charge_terminals=arguments.charge_terminals, make_unique=arguments.make_unique,
              remove_terminal_missing=arguments.remove_terminal_missing, mutant_multiple=arguments.mutant_multiple,
              mutation=arguments.mutation)

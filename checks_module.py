@@ -100,7 +100,8 @@ def CheckConformation(angles, conformation):
             else:
                 distorted_angles.append(angle)
     if len(ok_angles) > len(distorted_angles):
-        if distorted_angles:
+        if distorted_angles and len(angles) != needed_atoms:
+            print "       * The angles match the {} coordination".format(conformation)
             # print [[[x.getName(), x.getResnum(), x.getChid()] for x in angle[]] for angle in distorted_angles]
             print "       * The angle(s) formed by the following atoms are distorted for this geometry:"#\n{}".format(
             for angle in distorted_angles:
@@ -108,8 +109,10 @@ def CheckConformation(angles, conformation):
                                            "{}-{}-{}".format(angle[0].getName(), angle[0].getResnum(), angle[0].getChid(),),
                                            "{}-{}-{}".format(angle[1].getNames()[0], angle[1].getResnums()[0], angle[1].getChid()),
                                            "{}-{}-{}".format(angle[2].getName(), angle[2].getResnum(), angle[2].getChid()))
+        else:
+            print "       * The angles match perfectly the {} coordination".format(conformation)
         right_conformation = True
-    return  right_conformation
+    return right_conformation
 
 
 def CheckMetalsCoordination(structure):
@@ -155,22 +158,23 @@ def CheckMetalsCoordination(structure):
             metal_id = "{} {} {}".format(metal.getResname(), metal.getChid(), metal.getResnum())
             atoms_ids = ["{} {} {} {}".format(at.getResnum(), at.getResname(), at.getChid(), at.getName())
                          for at in atoms_list]
-            coordinated_atoms_ids[metal_id] = atoms_ids
+            if len(atoms_list) in [x[1] for x in coordination_geometries.itervalues()]:
+                coordinated_atoms_ids[metal_id] = atoms_ids
             print "     * The metal atom {0} has the following atoms within coordination " \
                   "distance:\n{1}".format(metal_id, "\n".join(['       * {0}'.format(x) for x in atoms_ids]))
             found_conformation = False
             angles = [[at, metal, at2, calcAngle(at, metal, at2)[0]]
                       for idx,at in enumerate(atoms_list) for at2 in atoms_list[idx + 1:]]
             if len(atoms_list) <= 4:
-                print "      * The atom seems to have a tetrahedric coordination."
+                print "      * Checking for a tetrahedric coordination for the atom."
                 found_conformation = CheckConformation(angles, 'tetrahedric')
                 if not found_conformation:
-                    print "        * The angles are too distorted to ascertain this configuration."
+                    print "        * WARNING: The angles are too distorted to ascertain this configuration. CHECK IT manually"
             elif 4 < len(atoms_list) <= 6: #or not found_conformation:
-                print "      * The atom seems to have an octahedric coordination."
+                print "      * WARNING: Checking for an octahedric coordination for the atom."
                 found_conformation = CheckConformation(angles, 'octahedric')
                 if not found_conformation:
-                    print "        * The angles are too distorted to ascertain this configuration."
+                    print "        * The angles are too distorted to ascertain this configuration. CHECK IT manually"
             else:
                 print "      * The metal doesn't have a coordination we can validate."
 
@@ -189,6 +193,7 @@ def CheckStructure(initial_structure, gaps={}, no_gaps={}, charge_terminals=Fals
     crosslinked_cysteines, charged_cysteines = CheckCysteines(initial_structure)
     residues2remove = {}
     metals2coordinate = CheckMetalsCoordination(initial_structure)
+    residues_without_template = []
     for chain in initial_structure.iterChains():
         if chain.getChid() in gaps.keys():
             gaps_e = [x[0] for x in gaps[chain.getChid()]]
@@ -226,6 +231,7 @@ def CheckStructure(initial_structure, gaps={}, no_gaps={}, charge_terminals=Fals
                     print "UP {}".format(resname)
             if zmatrix.Name is None:
                 print "  * The residue {} {} doesn't have a template, so it won't be checked.".format(resname, resnum)
+                residues_without_template.append([resname, resnum, chain.getChid()])
                 continue
             residue_atomnames.sort()
             if sorted(zmatrix.AtomNames) != residue_atomnames:
@@ -382,7 +388,7 @@ def CheckStructure(initial_structure, gaps={}, no_gaps={}, charge_terminals=Fals
                     residues2fix[key]['delete'] += atoms2delete
                     residues2fix[key]['modify'] += atoms2modify
     # print residues2fix, residues2remove
-    return residues2fix, residues2remove, metals2coordinate
+    return residues2fix, residues2remove, metals2coordinate, residues_without_template
 
 
 def CheckMapAndZmatrix(zmap_atoms, mutation_map, mutation, residue):
