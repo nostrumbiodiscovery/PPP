@@ -156,8 +156,9 @@ def CheckMetalsCoordination(structure):
     if coordinated_metals:
         for metal, atoms_list in coordinated_metals.iteritems():
             metal_id = "{} {} {}".format(metal.getResname(), metal.getChid(), metal.getResnum())
-            atoms_ids = ["{} {} {} {}".format(at.getResnum(), at.getResname(), at.getChid(), at.getName())
-                         for at in atoms_list]
+            atoms_ids = [["{} {} {} {}".format(at.getResnum(), at.getResname(), at.getChid(), at.getName()),
+                          calcDistance(metal, at)[0]] for at in atoms_list]
+            # distance = calcDistance(metal, )
             if len(atoms_list) in [x[1] for x in coordination_geometries.itervalues()]:
                 coordinated_atoms_ids[metal_id] = atoms_ids
             print "     * The metal atom {0} has the following atoms within coordination " \
