@@ -123,7 +123,7 @@ def CheckMetalsCoordination(structure):
     for metal in supported_metals:
         if structure.select('resname {}'.format(metal)) is not None:
             print "  * Checking the metals that can be coordinated. (" \
-                          "a constraint should be used if they're really coordinated)"
+                  "a constraint should be used if they're really coordinated)"
             for metal_res in structure.select('resname {}'.format(metal)).copy().iterResidues():
                 coordinated_atoms_list = []
                 if metal_res.numAtoms() != 1:
@@ -149,8 +149,8 @@ def CheckMetalsCoordination(structure):
                             coordinated_atoms_list.append(at)
                             prev_atom = at
                     coordinated_metals[metal_res] = coordinated_atoms_list#, 'angles': angles}
+    coordinated_atoms_ids = {}
     if coordinated_metals:
-        coordinated_atoms_ids = {}
         for metal, atoms_list in coordinated_metals.iteritems():
             metal_id = "{} {} {}".format(metal.getResname(), metal.getChid(), metal.getResnum())
             atoms_ids = ["{} {} {} {}".format(at.getResnum(), at.getResname(), at.getChid(), at.getName())
@@ -179,8 +179,8 @@ def CheckMetalsCoordination(structure):
         print "    * There are no coordinated metals."
 
         #
-    # return coordinated_atoms_ids
-    return coordinated_metals, coordinated_atoms_ids
+    return coordinated_atoms_ids
+    # return coordinated_metals, coordinated_atoms_ids
 
 
 def CheckStructure(initial_structure, gaps={}, no_gaps={}, charge_terminals=False, remove_missing_ter=False,
@@ -587,12 +587,12 @@ def CheckforGaps(structure):
                                 gaps[chain_id] = []
                             gaps[chain_id].append([previous_residue_number, residue.getResnum()])
                     elif current_residue_N is None:
-                        print "There's a problem with residue {} {} {} it" \
+                        print "   * There's a problem with residue {} {} {} it" \
                               " doesn't have the N atom".format(residue.getResname(),
                                                                 residue.getResnum(),
                                                                 residue.getChid())
                     elif previous_residue_C is None:
-                        print "There's a problem with residue {} {} {} it doesn't have the C atom".format(
+                        print "   * There's a problem with residue {} {} {} it doesn't have the C atom".format(
                             previous_residue.getResname(),
                             previous_residue.getResnum(),
                             previous_residue.getChid())
@@ -601,7 +601,7 @@ def CheckforGaps(structure):
                         if residue.hetero is not None:
                             residue.setResnum(previous_residue_number + 1)
                         else:
-                            print 'WARNING: There are two residues with the same resnum in the same chain.' \
+                            print '   * WARNING: There are two residues with the same resnum in the same chain.' \
                                   'The residue {} {} {} '.format(residue.getChid(),
                                                                  residue.getResnum(),
                                                                  residue.getResname())
@@ -609,14 +609,16 @@ def CheckforGaps(structure):
                     if residue.hetero is not None:
                         residue.setResnum(previous_residue_number + 1)
                     else:
-                        print residue.getResnum(), previous_residue_number
-                        print "WARNING! The next residue has a lower resnum than the previous one in the chain??"
-                        print "CHAIN: {} RESIDUE: {}  RESNUM {}".format(residue.getChid(),
-                                                                        residue.getResnum(),
-                                                                        residue.getResname())
-                        print "previous: RESIDUE {} RESNUM  {}".format(previous_residue.getResname(),
-                                                                       previous_residue.getResnum())
-                        return None, None
+                        # print residue.getResnum(), previous_residue_number
+                        print "   * WARNING! The next residue has a lower resnum than the previous one in the chain??"
+                        print "    * CHAIN: {} RESIDUE: {}  {} {}".format(residue.getChid(),
+                                                                    residue.getResnum(),
+                                                                    residue.getChid(),
+                                                                    residue.getResname())
+                        print "    * previous: RESIDUE {} {}  {}".format(previous_residue.getResname(),
+                                                                   previous_residue.getResnum(),
+                                                                   previous_residue.getChid())
+                        sys.exit('This should never happen, please review your structure.')
                 else:
                     pass
             previous_residue_number = residue.getResnum()
