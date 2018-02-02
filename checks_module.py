@@ -574,10 +574,10 @@ def CheckforGaps(structure):
             # print residue.getResnum() < previous_residue_number
             if previous_residue_number is not None:
                 # if residue.getResnum() > previous_residue_number + 1:
-                current_residue_N = residue.getAtom("N")
-                previous_residue = chain.getResidue(previous_residue_number)
-                previous_residue_C = previous_residue.getAtom('C')
                 if residue.getResname() in supported_aminoacids:
+                    current_residue_N = residue.getAtom("N")
+                    previous_residue = chain.getResidue(previous_residue_number)
+                    previous_residue_C = previous_residue.getAtom('C')
                     if current_residue_N is not None and previous_residue_C is not None:
                         distance = calcDistance(current_residue_N, previous_residue_C)
                         if distance < 1.5:
