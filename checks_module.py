@@ -162,7 +162,7 @@ def CheckMetalsCoordination(structure):
             if len(atoms_list) in [x[1] for x in coordination_geometries.itervalues()]:
                 coordinated_atoms_ids[metal_id] = atoms_ids
             print "     * The metal atom {0} has the following atoms within coordination " \
-                  "distance:\n{1}".format(metal_id, "\n".join(['       * {0}'.format(x) for x in atoms_ids]))
+                  "distance:\n{1}".format(metal_id, "\n".join(['       * {0}'.format(x[0]) for x in atoms_ids]))
             found_conformation = False
             angles = [[at, metal, at2, calcAngle(at, metal, at2)[0]]
                       for idx,at in enumerate(atoms_list) for at2 in atoms_list[idx + 1:]]
@@ -185,7 +185,7 @@ def CheckMetalsCoordination(structure):
 
         #
     return coordinated_atoms_ids
-    # return coordinated_metals, coordinated_atoms_ids
+    # return coordinated_metals
 
 
 def CheckStructure(initial_structure, gaps={}, no_gaps={}, charge_terminals=False, remove_missing_ter=False,
