@@ -158,12 +158,10 @@ def CheckMetalsCoordination(structure):
             metal_id = "{} {} {}".format(metal.getResname(), metal.getChid(), metal.getResnum())
             atoms_ids = [["{} {} {} {}".format(at.getResnum(), at.getResname(), at.getChid(), at.getName()),
                           calcDistance(metal, at)[0]] for at in atoms_list]
-            # distance = calcDistance(metal, )
             if len(atoms_list) in [x[1] for x in coordination_geometries.itervalues()]:
                 coordinated_atoms_ids[metal_id] = atoms_ids
             print "     * The metal atom {0} has the following atoms within coordination " \
                   "distance:\n{1}".format(metal_id, "\n".join(['       * {0}'.format(x[0]) for x in atoms_ids]))
-            found_conformation = False
             angles = [[at, metal, at2, calcAngle(at, metal, at2)[0]]
                       for idx,at in enumerate(atoms_list) for at2 in atoms_list[idx + 1:]]
             if len(atoms_list) <= 4:
@@ -183,9 +181,7 @@ def CheckMetalsCoordination(structure):
     else:
         print "  * There are no coordinated metals."
 
-        #
-    return coordinated_atoms_ids
-    # return coordinated_metals
+    return coordinated_metals
 
 
 def CheckStructure(initial_structure, gaps={}, no_gaps={}, charge_terminals=False, remove_missing_ter=False,
@@ -576,33 +572,40 @@ def CheckforGaps(structure):
             if previous_residue_number is not None:
                 # if residue.getResnum() > previous_residue_number + 1:
                 if residue.getResname() in supported_aminoacids:
-                    current_residue_N = residue.getAtom("N")
-                    previous_residue = chain.getResidue(previous_residue_number)
-                    previous_residue_C = previous_residue.getAtom('C')
-                    if current_residue_N is not None and previous_residue_C is not None:
-                        distance = calcDistance(current_residue_N, previous_residue_C)
-                        if distance < 1.5:
-                            try:
-                                not_gaps[chain_id]
-                            except KeyError:
-                                not_gaps[chain_id] = []
-                            not_gaps[chain_id].append([previous_residue_number, residue.getResnum()])
-                        else:
-                            try:
-                                gaps[chain_id]
-                            except KeyError:
-                                gaps[chain_id] = []
-                            gaps[chain_id].append([previous_residue_number, residue.getResnum()])
-                    elif current_residue_N is None:
-                        print "   * There's a problem with residue {} {} {} it" \
-                              " doesn't have the N atom".format(residue.getResname(),
-                                                                residue.getResnum(),
-                                                                residue.getChid())
-                    elif previous_residue_C is None:
-                        print "   * There's a problem with residue {} {} {} it doesn't have the C atom".format(
-                            previous_residue.getResname(),
-                            previous_residue.getResnum(),
-                            previous_residue.getChid())
+                    if residue.getResname() == 'ACE':
+                        try:
+                            gaps[chain_id]
+                        except KeyError:
+                            gaps[chain_id] = []
+                        gaps[chain_id].append([previous_residue_number, residue.getResnum()])
+                    else:
+                        current_residue_N = residue.getAtom("N")
+                        previous_residue = chain.getResidue(previous_residue_number)
+                        previous_residue_C = previous_residue.getAtom('C')
+                        if current_residue_N is not None and previous_residue_C is not None:
+                            distance = calcDistance(current_residue_N, previous_residue_C)
+                            if distance < 1.5:
+                                try:
+                                    not_gaps[chain_id]
+                                except KeyError:
+                                    not_gaps[chain_id] = []
+                                not_gaps[chain_id].append([previous_residue_number, residue.getResnum()])
+                            else:
+                                try:
+                                    gaps[chain_id]
+                                except KeyError:
+                                    gaps[chain_id] = []
+                                gaps[chain_id].append([previous_residue_number, residue.getResnum()])
+                        elif current_residue_N is None:
+                            print "   * There's a problem with residue {} {} {} it" \
+                                  " doesn't have the N atom".format(residue.getResname(),
+                                                                    residue.getResnum(),
+                                                                    residue.getChid())
+                        elif previous_residue_C is None:
+                            print "   * There's a problem with residue {} {} {} it doesn't have the C atom".format(
+                                previous_residue.getResname(),
+                                previous_residue.getResnum(),
+                                previous_residue.getChid())
                 if residue.getResnum() == previous_residue_number:
                     if residue.getIcode() == '':
                         if residue.hetero is not None:

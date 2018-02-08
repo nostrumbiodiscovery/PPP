@@ -8,6 +8,7 @@ from checks_module import CheckStructure, CheckforGaps
 from global_processes import ParseArguments, FindInitialAndFinalResidues, PDBwriter, RenumberStructure
 from hydrogens_addition import FixStructure
 from mutational_module import Mutate
+from global_variables import coordination_geometries
 
 __author__ = 'jelisa'
 
@@ -72,6 +73,7 @@ def main(input_pdb, output_pdb="", no_gaps_ter=False, charge_terminals=False, ma
             not_proteic_ligand = None
             PDBwriter(output_pdb[0], WritingAtomNames(structure2use), make_unique, residues2remove,
                       no_gaps_ter, not_proteic_ligand, gaps, not_gaps)
+
         return residues_without_template, gaps, metals2coordinate
     else:
         clashes = []
@@ -121,7 +123,7 @@ if __name__ == '__main__':
     if arguments is None:
         sys.exit()
     else:
-        a = main(arguments.input_pdb, output_pdb=arguments.output_pdb, no_gaps_ter=arguments.no_gaps_ter,
+        main(arguments.input_pdb, output_pdb=arguments.output_pdb, no_gaps_ter=arguments.no_gaps_ter,
              charge_terminals=arguments.charge_terminals, make_unique=arguments.make_unique,
              remove_terminal_missing=arguments.remove_terminal_missing, mutant_multiple=arguments.mutant_multiple,
              mutation=arguments.mutation)
