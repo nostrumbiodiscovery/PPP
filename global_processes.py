@@ -317,26 +317,14 @@ def PDBwriter(output_file_name, structure, make_unique, residues2remove, no_ter_
     return
 
 
-def RenumberStructure(initial_structure, gaps={}, no_gaps={}, debug=False):
+def RenumberStructure(initial_structure, debug=False):
     renumbered_structure = initial_structure.copy()
     for chain in renumbered_structure.iterChains():
         residue_number = 1
         chain_id = chain.getChid()
-        if chain_id in gaps.keys():
-            gap_residues = [y for x in gaps[chain_id] for y in x]
-        else:
-            gap_residues = []
-        if chain_id in no_gaps.keys():
-            no_gap_residues = [y for x in no_gaps[chain_id] for y in x]
-        else:
-            no_gap_residues = []
         for residue in chain.iterResidues():
             if residue.getResnum() == debug:
                 print residue.getResnum(), residue.getResname(), residue_number
-            if residue.getResnum() in gap_residues:
-                gap_residues[gap_residues.index(residue.getResnum())] = residue_number
-            elif residue.getResnum() in no_gap_residues:
-                no_gap_residues[no_gap_residues.index(residue.getResnum())] = residue_number
             residue.setResnum(residue_number)
             residue.setIcode('')
             residue_number += 1
