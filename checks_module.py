@@ -560,9 +560,21 @@ def CheckClashes(mutated_protein, mutation, zmatrix, initial_residue,
     return real_clashes
 
 
-def CheckforGaps(structure):
+def CheckforGaps(structure, max_bond_distance):
+    """
+    This function checks all the residues in the protein and checks whether the N of the current residue and the
+    C of the previous one are within peptidic bond distance (specified by the max_bond_distance variable)
+    in order to check for gaps.
+    :param structure: a prody object containing the structure to study.
+    :param max_bond_distance: a float specifying the max bond distance to accept.
+    :return: two dictionaries both containing the chain as key and the residues numbers (previous, current) involved
+    in a bond as values, the first dictionary contains the information about the gaps and the second one contains
+    the information about those not involved in gaps.
+    """
     gaps = {}
     not_gaps = {}
+    if max_bond_distance < 1.55:
+        max_bond_distance = 1.55
     for chain in structure.iterChains():
         # initial, final = FindInitialAndFinalResidues(chain)
         previous_residue_number = None
@@ -584,7 +596,7 @@ def CheckforGaps(structure):
                         previous_residue_C = previous_residue.getAtom('C')
                         if current_residue_N is not None and previous_residue_C is not None:
                             distance = calcDistance(current_residue_N, previous_residue_C)
-                            if distance < 1.5:
+                            if distance < max_bond_distance:
                                 try:
                                     not_gaps[chain_id]
                                 except KeyError:

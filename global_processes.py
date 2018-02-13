@@ -121,6 +121,8 @@ def ParseArguments():
                         help=parameters_help.charge_terminals_description)
     parser.add_argument("-no_gaps_ter", action="store_true", default=False,
                         help=parameters_help.no_gaps_ter_description)
+    parser.add_argument("-pdb_resolution", default=2.5, type=float,
+                        help=parameters_help.pdb_resolution_description)
     parser.add_argument("-make_unique", default=False,
                         help=parameters_help.make_unique_description)
     parser.add_argument("-remove_terminal_missing", default=False, action="store_true",

@@ -23,7 +23,7 @@ addNonstdAminoacid('CYT', 'neutral', 'acyclic', 'medium', 'polar', 'buried')
 addNonstdAminoacid('LYN', 'neutral', 'acyclic', 'large', 'polar', 'buried')
 
 
-def main(input_pdb, output_pdb="", no_gaps_ter=False, charge_terminals=False, make_unique=False,
+def main(input_pdb, pdb_resolution, output_pdb="", no_gaps_ter=False, charge_terminals=False, make_unique=False,
          remove_terminal_missing=False, mutant_multiple=False, mutation=""):
     try:
         initial_structure = parsePDB(input_pdb)
@@ -34,7 +34,7 @@ def main(input_pdb, output_pdb="", no_gaps_ter=False, charge_terminals=False, ma
     # ff_parameters = ReadForceFieldParameters(force_field)
 
     print "* Checking for gaps."
-    gaps, not_gaps = CheckforGaps(initial_structure)
+    gaps, not_gaps = CheckforGaps(initial_structure, pdb_resolution)
     if gaps is None and not_gaps is None:
         print "WARNING: Problems when checking for gaps, so don't trust the existence of gaps."
         gaps, not_gaps = {}, {}
@@ -57,7 +57,6 @@ def main(input_pdb, output_pdb="", no_gaps_ter=False, charge_terminals=False, ma
     if residues2fix:
         print '* Placing the missing atoms and removing the extra atoms:'
         structure2use = FixStructure(structure2use, residues2fix, gaps, charge_terminals)
-    print mutation
 
     if not mutation:
         print 'Writing the structure to {}'.format(output_pdb[0])
@@ -123,7 +122,7 @@ if __name__ == '__main__':
     if arguments is None:
         sys.exit()
     else:
-        main(arguments.input_pdb, output_pdb=arguments.output_pdb, no_gaps_ter=arguments.no_gaps_ter,
-             charge_terminals=arguments.charge_terminals, make_unique=arguments.make_unique,
-             remove_terminal_missing=arguments.remove_terminal_missing, mutant_multiple=arguments.mutant_multiple,
-             mutation=arguments.mutation)
+        main(arguments.input_pdb, arguments.pdb_resolution, output_pdb=arguments.output_pdb,
+             no_gaps_ter=arguments.no_gaps_ter, charge_terminals=arguments.charge_terminals,
+             make_unique=arguments.make_unique, remove_terminal_missing=arguments.remove_terminal_missing,
+             mutant_multiple=arguments.mutant_multiple, mutation=arguments.mutation)
