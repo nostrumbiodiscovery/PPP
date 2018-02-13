@@ -33,18 +33,19 @@ def main(input_pdb, pdb_resolution, output_pdb="", no_gaps_ter=False, charge_ter
     initial_residue, final_residue = FindInitialAndFinalResidues(initial_structure)
     # ff_parameters = ReadForceFieldParameters(force_field)
 
-    print "* Checking for gaps."
-    gaps, not_gaps = CheckforGaps(initial_structure, pdb_resolution)
-    if gaps is None and not_gaps is None:
-        print "WARNING: Problems when checking for gaps, so don't trust the existence of gaps."
-        gaps, not_gaps = {}, {}
     print "* Checking for insertion codes."
     insertion_codes = [icode for icode in initial_structure.getIcodes() if icode]
     if insertion_codes:
-        print " *The structure will be renumbered starting from 1 for each chain."
-        structure2use = RenumberStructure(initial_structure, gaps, not_gaps)
+        print "  * Due to the insertion codes the structure will be RENUMBERED starting from 1 for each chain.\n" \
+              "  ** Otherwise PELE would fail."
+        structure2use = RenumberStructure(initial_structure)
     else:
         structure2use = initial_structure
+    print "* Checking for gaps."
+    gaps, not_gaps = CheckforGaps(structure2use, pdb_resolution)
+    if gaps is None and not_gaps is None:
+        print "WARNING: Problems when checking for gaps, so don't trust the existence of gaps."
+        gaps, not_gaps = {}, {}
     print "* Checking and Fixing the Residues Names:"
     structure2use = FixStructureResnames(structure2use, make_unique)
     print "* Checking and fixing the Atoms Names:"
