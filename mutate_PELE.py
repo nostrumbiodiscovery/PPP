@@ -2,9 +2,9 @@ import argparse
 import os
 import sys
 from multiprocessing import Pool, cpu_count
-import ppp.mut_prep4pele as mut
 import subprocess
-import ppp.enviroment_parameters as env
+import PPP.mut_prep4pele as mut
+import PPP.enviroment_parameters as env
 import Utilities.template_builder as tb
 import Utilities.helpers as hp
 import Utilities.best_structs as bs
@@ -17,7 +17,6 @@ ADAPTIVE_CONTROL_FILE = os.path.join(DIR, "Template/adaptive.conf")
 PELE_CONTROL_FILE = os.path.join(DIR, "Template/pele.conf")
 CMD = "python -m AdaptivePELE.adaptiveSampling {}"
 
-print(cpu_count())
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -37,7 +36,7 @@ def main(system, mutations_file, box, cpus):
             output, mutation = mutation_info.split(" ",1)
             ini_res, resnum, chain, end_res = mutation.split()
             mutation = {'fin_resname': end_res, 'resnum': resnum, 'chain': "", 'ini_resname': ini_res}
-            mutants_for_pele.append(mut.main(system, mutation=[mutation], output_pdb=[output])[0])
+            mutants_for_pele.append(mut.main(system, 2.5, mutation=[mutation], output_pdb=[output])[0])
         folders = [ os.path.abspath(os.path.splitext(mutant)[0]) for mutant in mutants_for_pele ]
         pool = Pool(cpus)
         pool.map(launch_mutation_PELE, mutants_for_pele)
