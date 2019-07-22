@@ -1,5 +1,3 @@
-from enviroment_parameters import pele_folder_path
-
 __author__ = 'jelisa'
 
 
@@ -44,11 +42,11 @@ class ZMATRIX:
             try:
                 filein = open(filename, 'r')
             except IOError:
-                filename = pele_folder_path + "/Data/Templates/OPLS2005/Protein/" + aminoacid_name.lower()
+                filename = "Data/Templates/OPLS2005/Protein/" + aminoacid_name.lower()
                 try:
                     filein = open(filename, 'r')
                 except IOError:
-                    filename = pele_folder_path + "/Data/Templates/OPLS2005/HeteroAtoms/" + aminoacid_name.lower() + 'z'
+                    filename = "Data/Templates/OPLS2005/HeteroAtoms/" + aminoacid_name.lower() + 'z'
                     try:
                         filein = open(filename, 'r')
                     except IOError:
@@ -212,7 +210,7 @@ class ROTAMERLIB:
         self.ReadRotamerFile(aminoacid)
 
     def ReadRotamerFile(self, aminoacid):
-        residue_rotamer_library_path = pele_folder_path + "/Data/RotamerLibs/" + aminoacid.upper() + '.side'
+        residue_rotamer_library_path = "Data/RotamerLibs/" + aminoacid.upper() + '.side'
         filein = open(residue_rotamer_library_path, 'r')
         file_text = filein.readlines()
         filein.close()
