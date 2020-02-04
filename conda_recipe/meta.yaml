@@ -1,0 +1,34 @@
+# must do conda install -c NostrumBioDiscovery pele_platform 
+package:
+  name: pppele
+  version: "1.0.1"
+
+about:
+  home: https://github.com/NostrumBioDiscovery/PP
+  license: Apache
+  license_file: LICENSE
+  summary: Protein PELE Preparation
+
+source:
+  path: ../
+
+build:
+  script: python -m pip install . --no-deps -vv
+  number: 0
+
+requirements:
+  host:
+    - python
+
+  run:
+    # Base dependencies
+    - python
+    - prody
+    - scipy
+    - biopython
+
+test:
+  imports:
+    - PPP
+  command:
+    - python -m PPP.main -h 
