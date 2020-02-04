@@ -13,7 +13,7 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
      long_description = f.read()
 
 setup(
-    name="PPP",
+    name="PPPele",
     version=PPP.__version__,
     description='Protein PELE preparation',
     long_description=long_description,
@@ -25,7 +25,7 @@ setup(
                   "PPP/Data/Templates/OPLS2005/Protein": ['*'],
                   "PPP/Data/RotamerLibs/": ['*']},
     include_package_data=True,
-    install_requires=["biopython", "prody==1.8.2"],
+    install_requires=["biopython", "prody==1.8.2", "pytest", "scipy"],
     cmdclass=cmdclass,
     ext_modules=ext_modules  # accepts a glob pattern
 )
