@@ -3,6 +3,7 @@ import numpy as np
 CONSTRAINT = '{{ "type": "constrainAtomToPosition", "springConstant": 10, "equilibriumDistance": 0.0, "constrainThisAtom": "{}:{}:{}" }},'
 
 def search_smart_pattern(ligand, smiles):
+    from rdkit import Chem
     # Get smiles pattern
     patt = Chem.MolFromSmarts(smiles)
     Chem.Kekulize(patt)
@@ -28,7 +29,6 @@ def search_smart_pattern(ligand, smiles):
 def extract_constraint_from_smiles(ligand, smiles):
     from rdkit import Chem
     m = Chem.MolFromPDBFile(ligand)
-    print(Chem.MolToSmiles(m))
     atom_names, chain_names, coords, residue_numbers = search_smart_pattern(ligand, smiles)
     constants = [CONSTRAINT.format(chain_name, resname, atom_name) for atom_name, chain_name, coord, resname in zip(atom_names, chain_names, coords, residue_numbers)]
     return constants
