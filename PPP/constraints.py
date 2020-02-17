@@ -2,6 +2,7 @@
 import sys
 import os
 import argparse
+import PPP.substructure_search as ss
 
 AMINOACIDS = ["VAL", "ASN", "GLY", "LEU", "ILE",
               "SER", "ASP", "LYS", "MET", "GLN",
@@ -21,10 +22,12 @@ CONSTR_CALPHA = '''{{ "type": "constrainAtomToPosition", "springConstant": {2}, 
 
 class ConstraintBuilder(object):
 
-    def __init__(self, pdb, gaps, metals):
+    def __init__(self, pdb, ligand, gaps, metals, smiles):
         self.pdb = pdb
+        self.ligand = ligand
         self.gaps = gaps
         self.metals = metals
+        self.smiles = smiles
 
     def parse_atoms(self, interval=10):
         residues = {}
@@ -60,11 +63,13 @@ class ConstraintBuilder(object):
 
         metal_constr = self.metal_constraints()
 
+        smiles_constr = self.constrain_smiles()
+
         terminal_constr = [CONSTR_CALPHA.format(residues["initial"][0], residues["initial"][1], TER_CONSTR), CONSTR_CALPHA.format(residues["terminal"][0], residues["terminal"][1], TER_CONSTR).strip(",")]
 
         final_constr = ["],"]
 
-        constraints = init_constr + back_constr + gaps_constr + metal_constr + terminal_constr + final_constr
+        constraints = init_constr + back_constr + gaps_constr + metal_constr + smiles_constr + terminal_constr + final_constr
 
         return constraints
 
@@ -86,9 +91,17 @@ class ConstraintBuilder(object):
                 metal_constr.append(CONSTR_DIST.format(TER_CONSTR, bond_lenght, chain, resnum, ligname, chain, metnum, metal_name))
         return metal_constr
 
+    def constrain_smiles(self):
+        if self.smiles:
+            return ss.extract_constraint_from_smiles(self.ligand, self.smiles)
+        else:
+            return []
+        
 
-def retrieve_constraints(pdb_file, gaps, metal, back_constr=BACK_CONSTR, ter_constr=TER_CONSTR, interval=10):
-    constr = ConstraintBuilder(pdb_file, gaps, metal)
+
+def retrieve_constraints(complex_pdb, ligand_pdb, gaps, metal, constrain_smiles=False, 
+    back_constr=BACK_CONSTR, ter_constr=TER_CONSTR, interval=10):
+    constr = ConstraintBuilder(complex_pdb, ligand_pdb, gaps, metal, constrain_smiles)
     residues = constr.parse_atoms(interval=interval)
     constraints = constr.build_constraint(residues, back_constr, ter_constr)
     return constraints
