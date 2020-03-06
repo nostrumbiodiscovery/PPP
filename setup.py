@@ -25,7 +25,7 @@ setup(
                   "PPP/Data/Templates/OPLS2005/Protein": ['*'],
                   "PPP/Data/RotamerLibs/": ['*']},
     include_package_data=True,
-    install_requires=["biopython", "prody==1.8.2", "pytest", "scipy"],
+    install_requires=["biopython", "prody", "pytest", "scipy"],
     cmdclass=cmdclass,
     ext_modules=ext_modules  # accepts a glob pattern
 )
