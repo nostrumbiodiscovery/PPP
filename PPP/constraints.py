@@ -2,6 +2,7 @@
 import sys
 import os
 import argparse
+from collections import defaultdict
 import PPP.substructure_search as ss
 
 AMINOACIDS = ["VAL", "ASN", "GLY", "LEU", "ILE",
@@ -28,46 +29,63 @@ class ConstraintBuilder(object):
         self.gaps = gaps
         self.metals = metals
         self.smiles = smiles
+        self.residues = defaultdict(list)
+
+    def _add_atom_id_to_dict(self, chain, atom_id, interval):
+        # Only adds a new atom_id if it fullfills the interval condition
+        for already_present_id in self.residues[chain]:
+            if (abs(int(already_present_id) - int(atom_id)) < interval):
+                break
+        else:
+            self.residues[chain].append(int(atom_id))
 
     def parse_atoms(self, interval=10):
-        residues = {}
-        initial_res = None
+        self.residues = defaultdict(list)
+        initial_residue_found = False
+
         with open(self.pdb, "r") as pdb:
             for line in pdb:
-                resname = line[16:21].strip()
-                atomtype = line[11:16].strip()
-                resnum = line[22:26].strip()
+                atom_name = line[16:21].strip()
+                atom_type = line[11:16].strip()
+                atom_id = line[22:26].strip()
                 chain = line[20:22].strip()
-                if line.startswith("ATOM") and resname in AMINOACIDS and atomtype == "CA":
-                    try:
-                        if not initial_res:
-                            residues["initial"] = [chain, line[22:26].strip()]
-                            initial_res = True
-                            continue
-                        # Apply constraint every 10 residues
-                        elif int(resnum) % interval != 1:
-                            residues["terminal"] = [chain, line[22:26].strip()]
-                        elif int(resnum) % interval == 1 and line.startswith("ATOM") and resname in AMINOACIDS and atomtype == "CA":
-                            residues[resnum] = chain
-                    except ValueError:
-                        continue
-        return residues
 
-    def build_constraint(self, residues, BACK_CONSTR=BACK_CONSTR, TER_CONSTR=TER_CONSTR):
+                if ((line.startswith("ATOM")) and (atom_name in AMINOACIDS) and (atom_type == "CA")):
+                    try:
+                        self._add_atom_id_to_dict(chain, atom_id, interval)
+                    except TypeError:
+                        pass
+
+    def build_constraint(self, BACK_CONSTR=BACK_CONSTR, TER_CONSTR=TER_CONSTR):
 
         init_constr = ['''"constraints":[''', ]
 
-        back_constr = [CONSTR_CALPHA.format(chain, resnum, BACK_CONSTR) for resnum, chain in residues.items() if resnum.isdigit()]
+        terminal_constr = []
+        back_constr = []
+        # Backbone constraints
+        for chain, atom_ids in self.residues.items():
+            # Sort by ids to identify initial and final atoms
+            atom_ids.sort()
 
+            # Add constraints to terminal CA
+            terminal_constr.append(CONSTR_CALPHA.format(chain, atom_ids[0], TER_CONSTR))
+            terminal_constr.append(CONSTR_CALPHA.format(chain, atom_ids[-1], TER_CONSTR))
+
+            # Add constraints to mid CA
+            for atom_id in atom_ids[1:-1]:
+                back_constr.append(CONSTR_CALPHA.format(chain, atom_id, BACK_CONSTR))
+
+        # Gaps constraints
         gaps_constr = self.gaps_constraints()
 
+        # Metal constraints
         metal_constr = self.metal_constraints()
 
         smiles_constr = self.constrain_smiles()
 
-        terminal_constr = [CONSTR_CALPHA.format(residues["initial"][0], residues["initial"][1], TER_CONSTR), CONSTR_CALPHA.format(residues["terminal"][0], residues["terminal"][1], TER_CONSTR).strip(",")]
-
         final_constr = ["],"]
+
+        terminal_constr[-1] = terminal_constr[-1].strip(',')
 
         constraints = init_constr + back_constr + gaps_constr + metal_constr + smiles_constr + terminal_constr + final_constr
 
@@ -102,8 +120,8 @@ class ConstraintBuilder(object):
 def retrieve_constraints(complex_pdb, ligand_pdb, gaps, metal, constrain_smiles=False, 
     back_constr=BACK_CONSTR, ter_constr=TER_CONSTR, interval=10):
     constr = ConstraintBuilder(complex_pdb, ligand_pdb, gaps, metal, constrain_smiles)
-    residues = constr.parse_atoms(interval=interval)
-    constraints = constr.build_constraint(residues, back_constr, ter_constr)
+    constr.parse_atoms(interval=interval)
+    constraints = constr.build_constraint(back_constr, ter_constr)
     return constraints
 
 def parseargs():
