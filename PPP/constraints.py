@@ -9,7 +9,7 @@ AMINOACIDS = ["VAL", "ASN", "GLY", "LEU", "ILE",
               "SER", "ASP", "LYS", "MET", "GLN",
               "TRP", "ARG", "ALA", "THR", "PRO",
               "PHE", "GLU", "HIS", "HIP", "TYR",
-              "CYS", "HID"]
+              "CYS", "HID", "HIE"]
 
 TER_CONSTR = 5
 
