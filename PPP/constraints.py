@@ -44,6 +44,7 @@ class ConstraintBuilder(object):
         initial_residue_found = False
 
         with open(self.pdb, "r") as pdb:
+            last_CA = {"atom_id": None, "chain": None}
             for line in pdb:
                 atom_name = line[16:21].strip()
                 atom_type = line[11:16].strip()
@@ -52,9 +53,14 @@ class ConstraintBuilder(object):
 
                 if ((line.startswith("ATOM")) and (atom_name in AMINOACIDS) and (atom_type == "CA")):
                     try:
+                        last_CA["chain"] = chain
+                        last_CA["atom_id"] = atom_id
                         self._add_atom_id_to_dict(chain, atom_id, interval)
                     except TypeError:
                         pass
+        terminal_id = last_CA["atom_id"]
+        terminal_chain = last_CA["chain"]
+        self.residues[terminal_chain].append(int(terminal_id))
 
     def build_constraint(self, BACK_CONSTR=BACK_CONSTR, TER_CONSTR=TER_CONSTR):
 
@@ -68,7 +74,6 @@ class ConstraintBuilder(object):
             atom_ids.sort()
 
             # Add constraints to terminal CA
-            terminal_constr.append(CONSTR_CALPHA.format(chain, atom_ids[0], TER_CONSTR))
             terminal_constr.append(CONSTR_CALPHA.format(chain, atom_ids[-1], TER_CONSTR))
 
             # Add constraints to mid CA
