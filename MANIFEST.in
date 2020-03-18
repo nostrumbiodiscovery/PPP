@@ -1,0 +1,3 @@
+recursive-include PPP/Data/Templates/OPLS2005/HeteroAtoms *
+recursive-include PPP/Data/Templates/OPLS2005/Protein *
+recursive-include PPP/Data/RotamerLibs *

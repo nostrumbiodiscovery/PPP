@@ -1,8 +1,8 @@
 import sys
 from argparse import ArgumentParser, RawTextHelpFormatter
 from re import match
-from global_variables import supported_aminoacids, input_keywords, aminoacids_1letter, aminoacids_3letter
-import parameters_help
+from PPP.global_variables import supported_aminoacids, input_keywords, aminoacids_1letter, aminoacids_3letter
+from PPP import parameters_help
 
 from prody import parsePDB
 
@@ -17,7 +17,6 @@ def ParseMutations(unprocessed_mutation, structure_filename):
     chain = ""
     for mutation in unprocessed_mutation:
         splitted_mutation = mutation.split()
-        print mutation
         if "residue" not in mutation:
             if len(splitted_mutation) == 4:
                 original_resname, resnum, chain, final_resname = [value.upper() for value in splitted_mutation]
@@ -32,12 +31,11 @@ def ParseMutations(unprocessed_mutation, structure_filename):
                     selection_string = "({}) and (not {}) and (not resname HOH)".format(selection_string_raw,
                                                                                         selection_center)
                     mutations2add = []
-                    print selection_string
                     selection = structure.select(selection_string).copy()
                     if selection is None:
-                        print "Something is wrong with the selection string it isn't selecting anything. Review it!"
-                        print " Selection string: {}".format(selection_string)
-                        print "The program will be interrupted."
+                        print("Something is wrong with the selection string it isn't selecting anything. Review it!")
+                        print(" Selection string: {}".format(selection_string))
+                        print("The program will be interrupted.")
                         sys.exit()
                     for residue in selection.iterResidues():
                         original_resname = residue.getResname()
@@ -62,8 +60,8 @@ def ParseMutations(unprocessed_mutation, structure_filename):
                     try:
                         int(splitted_mutation[splitted_mutation.index("residue") + 1])
                     except ValueError:
-                        print "Your mutation string is wrong." \
-                              " It should look like: 'residue XXX N to YYY' with N being the resnum and XXX, YYY being supported aminoacids"
+                        print("Your mutation string is wrong." \
+                              " It should look like: 'residue XXX N to YYY' with N being the resnum and XXX, YYY being supported aminoacids")
                         sys.exit()
                     else:
                         original_resname = splitted_mutation[splitted_mutation.index("residue") + 2].upper()
@@ -83,7 +81,7 @@ def ParseMutations(unprocessed_mutation, structure_filename):
                     "chain": chain, "fin_resname": final_resname}
         if mutation["fin_resname"] in supported_aminoacids:
             processed_mutations.append(mutation)
-            print 'a'
+            print('a')
         elif mutation["fin_resname"].lower() in input_keywords.keys():
             keyword = mutation["fin_resname"].lower()
             histidines_equivalents = ["HID", "HIE", "HIP", "HIS"]
@@ -101,8 +99,7 @@ def ParseMutations(unprocessed_mutation, structure_filename):
                                 "chain": chain, "fin_resname": aminoacid}
                     processed_mutations.append(mutation)
         else:
-            print 'c', mutation["fin_resname"], input_keywords.keys()
-    print processed_mutations
+            print('c', mutation["fin_resname"], input_keywords.keys())
     return processed_mutations
 
 
@@ -133,7 +130,7 @@ def ParseArguments():
     args = parser.parse_args()
 
     if len(args.input_pdb) > 1 and (args.mutation != '' or args.mutants_from_file):
-        print "This options are incompatible, when you want to do mutations you should use only one structure at time."
+        print("This options are incompatible, when you want to do mutations you should use only one structure at time.")
         return None
     if len(args.input_pdb) == 1:
         args.input_pdb = args.input_pdb[0]
@@ -200,7 +197,8 @@ def FindInitialAndFinalResidues(structure):
 
 
 def PDBwriter(output_file_name, structure, make_unique, residues2remove, no_ter_mkar_for_gaps, no_proteic_ligand=None,
-              gaps={}, no_gaps={}):
+              gaps={}, no_gaps={}, mid_chain_nonstd_residue=[]):
+    supported_aminoacids.extend(mid_chain_nonstd_residue)
     if '.pdb' not in output_file_name:
         output_file_name += '.pdb'
     outfile = open(output_file_name, 'w')
@@ -280,9 +278,9 @@ def PDBwriter(output_file_name, structure, make_unique, residues2remove, no_ter_
                             elif raw_atom_name not in ligand_possible_atoms.keys():
                                 raw_atom_name = raw_atom_name[0]
                                 if raw_atom_name not in ligand_possible_atoms.keys():
-                                    print "INVALID ATOM NAME in the ligand file: {}".format(raw_atom_name)
+                                    print("INVALID ATOM NAME in the ligand file: {}".format(raw_atom_name))
                         elif raw_atom_name not in ligand_possible_atoms.keys():
-                            print "INVALID ATOM NAME in the ligand file: {}".format(raw_atom_name)
+                            print("INVALID ATOM NAME in the ligand file: {}".format(raw_atom_name))
                     atom_name = raw_atom_name + str(ligand_possible_atoms[raw_atom_name])
                     if len(atom_name) == 1:
                         formated_atom_name = " " + atom_name + "  "
@@ -324,7 +322,7 @@ def RenumberStructure(initial_structure, debug=False):
         chain_id = chain.getChid()
         for residue in chain.iterResidues():
             if residue.getResnum() == debug:
-                print residue.getResnum(), residue.getResname(), residue_number
+                print(residue.getResnum(), residue.getResname(), residue_number)
             residue.setResnum(residue_number)
             residue.setIcode('')
             residue_number += 1

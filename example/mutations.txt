@@ -1,7 +1,0 @@
-MUTATION1
-mut1_1.pdb TRP 2 A ALA
-mut1_2.pdb TRP 2 A GLY
-
-MUTATION2
-mut2_1.pdb LYS 3 A ALA
-mut2_2.pdb LYS 3 A GLY

@@ -1,7 +1,0 @@
-MUTATION1
-mut1_1.pdb ARG 164 A ALA
-mut1_2.pdb ARG 164 A GLY
-
-MUTATION2
-mut2_1.pdb PHE 165 A ALA
-mut2_2.pdb PHE 165 A GLY
