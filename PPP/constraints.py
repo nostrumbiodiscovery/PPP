@@ -9,7 +9,7 @@ AMINOACIDS = ["VAL", "ASN", "GLY", "LEU", "ILE",
               "SER", "ASP", "LYS", "MET", "GLN",
               "TRP", "ARG", "ALA", "THR", "PRO",
               "PHE", "GLU", "HIS", "HIP", "TYR",
-              "CYS", "HID", "HIE"]
+              "CYS", "HID", "HIE", "GLN"]
 
 TER_CONSTR = 5
 
@@ -34,27 +34,36 @@ class ConstraintBuilder(object):
     def _add_atom_id_to_dict(self, chain, atom_id, interval):
         # Only adds a new atom_id if it fullfills the interval condition
         for already_present_id in self.residues[chain]:
-            if (abs(int(already_present_id) - int(atom_id)) < interval):
+            if (abs(already_present_id - atom_id) < interval):
                 break
         else:
-            self.residues[chain].append(int(atom_id))
+            self.residues[chain].append(atom_id)
 
     def parse_atoms(self, interval=10):
         self.residues = defaultdict(list)
         initial_residue_found = False
-
+        start = True
         with open(self.pdb, "r") as pdb:
+            last_CA = {"atom_id": None, "chain": None}
             for line in pdb:
                 atom_name = line[16:21].strip()
                 atom_type = line[11:16].strip()
-                atom_id = line[22:26].strip()
+                # If you find something is not an atom pass line
+                try:
+                    atom_id = int(line[22:26].strip())
+                except ValueError:
+                    continue 
                 chain = line[20:22].strip()
-
                 if ((line.startswith("ATOM")) and (atom_name in AMINOACIDS) and (atom_type == "CA")):
                     try:
+                        last_CA["chain"] = chain
+                        last_CA["atom_id"] = atom_id
                         self._add_atom_id_to_dict(chain, atom_id, interval)
                     except TypeError:
                         pass
+        terminal_id = last_CA["atom_id"]
+        terminal_chain = last_CA["chain"]
+        self.residues[terminal_chain].append(terminal_id)
 
     def build_constraint(self, BACK_CONSTR=BACK_CONSTR, TER_CONSTR=TER_CONSTR):
 
