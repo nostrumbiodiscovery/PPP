@@ -5,5 +5,5 @@ Platform to prepare the receptor for PELE
 
 - git clone repo
 - export PATH=~/repo/
-- python PPP.main -ipdb file.pdb
+- python -m PPP.main -ipdb file.pdb
 
