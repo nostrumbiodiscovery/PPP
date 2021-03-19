@@ -28,7 +28,7 @@ addNonstdAminoacid('LYN', 'neutral', 'acyclic', 'large', 'polar', 'buried')
 def main(input_pdb, pele_dir, output_pdb=["",],  no_gaps_ter=False, charge_terminals=False, make_unique=False,
          remove_terminal_missing=False, mutant_multiple=False,
          mutation="", mid_chain_nonstd_residue=[], skip=False,
-         resolution=2.5, back_constr=0.5, constrain_smiles=False, ligand_pdb=False):
+         resolution=2.5, back_constr=0.5, constrain_smiles=False, ligand_pdb=False, ca_interval=10):
 
     if not output_pdb[0]:
         output = os.path.splitext(os.path.basename(input_pdb))[0]
@@ -101,7 +101,7 @@ def main(input_pdb, pele_dir, output_pdb=["",],  no_gaps_ter=False, charge_termi
 
         ###########RETRIEVE CONSTANTS###############
         constr = ct.retrieve_constraints(output_pdb[0], ligand_pdb, gaps, coordinated_atoms_ids, back_constr=back_constr,
-            constrain_smiles=constrain_smiles)
+            constrain_smiles=constrain_smiles, interval=ca_interval)
 
 
 
