@@ -5,7 +5,7 @@ from prody import calcDistance
 from PPP.checks_module import CheckClashes
 from PPP.coordinates_module import ChangeResidueCoordinates
 from PPP.global_processes import FindInitialAndFinalResidues
-from PPP.global_variables import protein_atomnames_dictionary, supported_aminoacids, supported_metals
+from PPP.global_variables import protein_atomnames_dictionary, default_supported_aminoacids, supported_metals
 from PPP.program_own_classes import ROTAMERLIB
 
 __author__ = 'jelisa'
@@ -185,8 +185,8 @@ def FixStructureResnames(initial_structure, ligand_chain=False):
     for res in structure.iterResidues():
         resname = res.getResname()
         ligand_structure = None
-        # print ligand_chain == res.getChid(), resname in supported_aminoacids
-        if ligand_chain == res.getChid() and resname in supported_aminoacids:
+
+        if ligand_chain == res.getChid() and resname in default_supported_aminoacids:
             ligand_structure = structure.chain_Z.copy()
         if ligand_structure is not None and ligand_structure.hetero is not None:
             print("INFO: Renaming the ligand to LIG in structure {}".format(initial_structure.getTitle()))
