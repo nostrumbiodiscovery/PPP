@@ -3,7 +3,7 @@ import sys
 from prody import Contacts, calcDistance, calcAngle
 
 from PPP.global_processes import FindInitialAndFinalResidues
-from PPP.global_variables import supported_aminoacids, supported_metals, coordination_geometries
+from PPP.global_variables import default_supported_aminoacids, supported_metals, coordination_geometries
 from PPP.program_own_classes import ZMATRIX
 
 __author__ = 'jelisa'
@@ -207,7 +207,7 @@ def CheckStructure(initial_structure, gaps={}, no_gaps={}, charge_terminals=Fals
             residue_atomnames = list(residue.getNames())
             if resname in supported_metals:
                 continue
-            if resname in supported_aminoacids:
+            if resname in default_supported_aminoacids:
                 if charge_terminals:
                     if resnum == initial_residue or resnum in gaps_b:
                         zmatrix = ZMATRIX(resname + 'B')
@@ -438,7 +438,7 @@ def CheckMutation(wt_structure, mutation):
         - valid_resnames_file: the path to the file containing a list with the supported mutations
     """
 
-    if mutation['fin_resname'] not in supported_aminoacids:
+    if mutation['fin_resname'] not in default_supported_aminoacids:
         return False
 
     testing_the_resnum = "resnum {}".format(mutation['resnum'])
@@ -536,7 +536,7 @@ def CheckClashes(mutated_protein, mutation, zmatrix, initial_residue,
             atom2check = mutated_protein.select('index {}'.format(ind))
             atom2check_resname = atom2check.getResnames()[0]
             atom2check_resnum = atom2check.getResnums()[0]
-            if atom2check_resnum == initial_residue and atom2check_resname in supported_aminoacids:
+            if atom2check_resnum == initial_residue and atom2check_resname in default_supported_aminoacids:
                 atom2check_zmatrix = ZMATRIX(atom2check_resname + 'B')
             elif atom2check_resnum == final_residue:
                 atom2check_zmatrix = ZMATRIX(atom2check_resname + 'E')
@@ -583,7 +583,7 @@ def CheckforGaps(structure, max_bond_distance):
             # print residue.getResnum() < previous_residue_number
             if previous_residue_number is not None:
                 # if residue.getResnum() > previous_residue_number + 1:
-                if residue.getResname() in supported_aminoacids:
+                if residue.getResname() in default_supported_aminoacids:
                     if residue.getResname() == 'ACE':
                         try:
                             gaps[chain_id]

@@ -1,7 +1,8 @@
+import copy
 import sys
 from argparse import ArgumentParser, RawTextHelpFormatter
 from re import match
-from PPP.global_variables import supported_aminoacids, input_keywords, aminoacids_1letter, aminoacids_3letter
+from PPP.global_variables import default_supported_aminoacids, input_keywords, aminoacids_1letter, aminoacids_3letter
 from PPP import parameters_help
 
 from prody import parsePDB
@@ -79,7 +80,7 @@ def ParseMutations(unprocessed_mutation, structure_filename):
                 final_resname = splitted_mutation[splitted_mutation.index('to') + 1].upper()
         mutation = {'ini_resname': original_resname, "resnum": resnum,
                     "chain": chain, "fin_resname": final_resname}
-        if mutation["fin_resname"] in supported_aminoacids:
+        if mutation["fin_resname"] in default_supported_aminoacids:
             processed_mutations.append(mutation)
             print('a')
         elif mutation["fin_resname"].lower() in input_keywords.keys():
@@ -186,7 +187,7 @@ def FindInitialAndFinalResidues(structure):
     for res in structure.iterResidues():
         resnum = res.getResnum()
         resname = res.getResname()
-        if resname in supported_aminoacids:
+        if resname in default_supported_aminoacids:
             if not first_aa:
                 initial_residue = resnum
                 first_aa = True
@@ -198,6 +199,7 @@ def FindInitialAndFinalResidues(structure):
 
 def PDBwriter(output_file_name, structure, make_unique, residues2remove, no_ter_mkar_for_gaps, no_proteic_ligand=None,
               gaps={}, no_gaps={}, mid_chain_nonstd_residue=[]):
+    supported_aminoacids = copy.copy(default_supported_aminoacids)
     supported_aminoacids.extend(mid_chain_nonstd_residue)
     if '.pdb' not in output_file_name:
         output_file_name += '.pdb'
