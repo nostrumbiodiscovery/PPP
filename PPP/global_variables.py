@@ -1,6 +1,6 @@
 default_supported_aminoacids = ["ALA", "ARG", "ASH", "ASN", "ASP", "CYS", "CYT", "GLH",
                         "GLN", "GLU", "GLY", "HID", "HIE", "HIS", "HIP", "ILE",
-                        "LEU", "LYS", "LYN", "MET", "PHE", "PRO", "SER", "TRP",
+                        "LEU", "LYS", "LYN", "MET", "PHE", "PRO", "PTR", "SER", "TRP",
                         "THR", "TYR", "VAL", "ACE", "NMA"]
 aminoacids_3letter = ['ALA', 'ARG', 'ASH', 'ASN', 'ASP', 'CYS', 'GLH', 'GLN',
                       'GLU', 'GLY', 'HID', 'HIE', 'HIS', 'HIP', 'ILE', 'LEU',
@@ -243,6 +243,12 @@ protein_atomnames_dictionary = {
     "ACE": [['CA', 'CH3'], ['HH31', 'HA1', 'H', '1H', 'H1'], ['HH32', 'HA2', '2H', 'H2'], ['HH33', 'HA3', '3H', 'H3'],
             ['C', 'C'], ['O', 'O']],
     "NMA": [['HH31', '1HA', 'HA1'], ['HH32', '2HA', 'HA2'], ['HH33', '3HA', 'HA3'], ['CA', 'C'], ['H', 'H'], ['N']],
+    "PTR": [['H', 'H', 'HN', 'H2', 'HN2', 'H', 'HN'], ['N', 'N', 'N'], ['CA', 'CA', 'CA'], ['HA', 'HA', 'HA'], ['O1P', 'O1P', 'O1P'], ['O2P', 'O2P', 'O2P'],
+            ['O3P', 'O3P', 'O3P'], ['P', 'P', 'P'], ['OH', 'OH', 'OH'], ['CZ', 'CZ', 'CZ'], ['C', 'C', 'C'],
+            ['O', 'O', 'O'], ['CB', 'CB', 'CB'], ['CG', 'CG', 'CG'], ['HB2', 'HB2', 'HB2'], ['HB3', 'HB3', 'HB3'],
+            ['CD1', 'CD1', 'CD1'], ['CD2', 'CD2', 'CD2'], ['HD1', 'HD1', 'HD1'], ['HD2', 'HD2', 'HD2'],
+            ['CE2', 'CE2', 'CE2'], ['CE1', 'CE1', 'CE1'], ['HE2', 'HE2', 'HE2'], ['HE1', 'HE1', 'HE1'],
+            ['H1', 'HN1'], ['H3', 'HN3']],
 }
 
 supported_metals = ["MN", "MG", "ZN", "CA", "CU", "FE", "NI", "CO", "PB"]
