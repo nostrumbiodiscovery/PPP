@@ -1,7 +1,7 @@
 # must do conda install -c NostrumBioDiscovery pele_platform 
 package:
   name: pppele
-  version: "1.0.8"
+  version: "1.0.9"
 
 about:
   home: https://github.com/NostrumBioDiscovery/PP
