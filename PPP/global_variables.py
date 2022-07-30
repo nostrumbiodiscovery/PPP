@@ -1,7 +1,7 @@
 default_supported_aminoacids = ["ALA", "ARG", "ASH", "ASN", "ASP", "CYS", "CYT", "GLH",
-                        "GLN", "GLU", "GLY", "HID", "HIE", "HIS", "HIP", "ILE",
-                        "LEU", "LYS", "LYN", "MET", "PHE", "PRO", "PTR", "SER", "TRP",
-                        "THR", "TYR", "VAL", "ACE", "NMA"]
+                                "GLN", "GLU", "GLY", "HID", "HIE", "HIS", "HIP", "ILE",
+                                "LEU", "LYS", "LYN", "MET", "PHE", "PRO", "PTR", "SER", "SEP",
+                                "TRP", "THR", "TYR", "VAL", "ACE", "NMA"]
 aminoacids_3letter = ['ALA', 'ARG', 'ASH', 'ASN', 'ASP', 'CYS', 'GLH', 'GLN',
                       'GLU', 'GLY', 'HID', 'HIE', 'HIS', 'HIP', 'ILE', 'LEU',
                       'LYS', 'LYN', 'MET', 'PHE', 'PRO', 'SER', 'TRP', 'THR',
